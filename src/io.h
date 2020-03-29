@@ -19,12 +19,12 @@
 
 void print( const char* msg )
 {
-    char* video_memory = (char*) 0xb8000;
+    uint16_t* video_memory = (uint16_t*) 0xb8000;
 
     while( *msg )
     {
-        *video_memory = *msg;
-        video_memory += 2;
+        *video_memory = 0x0f00 | *msg;
+        video_memory++;
         msg++;
     }
 }

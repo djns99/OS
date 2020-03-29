@@ -5,8 +5,6 @@
 #include "meminfo.h"
 #include "memory.h"
 
-#define NULL 0x0
-
 uint32_t get_slab_elem_stride8( uint32_t slab_elem_size )
 {
     return slab_elem_size + ALLOC_RESERVED_SIZE;

@@ -24,7 +24,7 @@ kernel.bin: $(obj_files) kernel_entry.o
 kernel-image.bin: boot_sect.bin kernel.bin
 	cat $^ > $@
 
-run: all
+run: kernel-image.bin
 	qemu-system-i386 -fda $<
 
 .PHONY: test
