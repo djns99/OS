@@ -22,4 +22,4 @@ add_custom_target( kernel-image.bin ALL
 
 add_custom_target( run
                     qemu-system-i386 -fda ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel-image.bin
-                    DEPENDS kernel-image.bin)
+                    DEPENDS kernel-image.bin )

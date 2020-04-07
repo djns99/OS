@@ -3,17 +3,30 @@
 #include "types.h"
 #include "debug.h"
 
-#define offsetof( TYPE, MEMBER ) ((uint32_t)&(((TYPE*)0)->MEMBER))
-#define container_of( TYPE, MEMBER, NODE ) (TYPE*)(((uint8_t*)node_ptr) - offsetof( TYPE, MEMBER ))
+#define OFFSET_OF( TYPE, MEMBER ) ((uint32_t)&(((TYPE*)0)->MEMBER))
+#define CONTAINER_OF( TYPE, MEMBER, NODE ) (TYPE*)(((uint8_t*)node_ptr) - OFFSET_OF( TYPE, MEMBER ))
 
 typedef struct list_node_t
 {
     struct list_node_t* next;
+    struct list_node_t* prev;
 } list_node_t;
 
 typedef struct {
-    list_node_t* head;
+    list_node_t head;
 } list_node_head_t;
+
+void init_list( list_node_head_t* list )
+{
+    list->head.next = &list->head;
+    list->head.prev = &list->head;
+}
+
+bool list_is_empty( list_node_head_t* list )
+{
+    return list->head.next == &list->head;
+}
+
 
 list_node_t* list_get_next_node( list_node_t* curr )
 {
@@ -21,23 +34,48 @@ list_node_t* list_get_next_node( list_node_t* curr )
     return curr->next;
 }
 
-void list_set_next_node( list_node_t* curr, list_node_t* next )
+list_node_t* list_get_prev_node( list_node_t* curr )
 {
     KERNEL_ASSERT( curr != NULL );
-    curr->next = next;
+    return curr->prev;
 }
 
-void list_init_node( list_node_t* node )
+void list_insert_after_node( list_node_t* node, list_node_t* to_insert )
+{
+    to_insert->next = node->next;
+    to_insert->prev = node;
+    to_insert->next->prev = to_insert;
+    to_insert->prev->next = to_insert;
+}
+
+void list_insert_before_node( list_node_t* node, list_node_t* to_insert )
+{
+    to_insert->next = node;
+    to_insert->prev = node->prev;
+    to_insert->next->prev = to_insert;
+    to_insert->prev->next = to_insert;
+}
+
+void list_insert_tail_node( list_node_head_t* list, list_node_t* node )
 {
     KERNEL_ASSERT( node != NULL );
-    node->next = NULL;
+    
+    // Insert at the tail of the list
+    list_insert_before_node( &list->head, node );
 }
 
+void list_insert_head_node( list_node_head_t* list, list_node_t* node )
+{
+    KERNEL_ASSERT( node != NULL );
+    // Insert at the tail of the list
+    list_insert_after_node( &list->head, node );
+}
 
-#define list_get_next( TYPE, MEMBER, CURRENT ) ( list_get_next_node( CURRENT->MEMBER ) == NULL ? NULL : container_of( TYPE, MEMBER, list_get_next_node( CURRENT->MEMBER ) ) )
-#define list_get_first( TYPE, MEMBER, HEAD ) ( HEAD->head == NULL ? NULL : container_of( TYPE, MEMBER, HEAD->head ) )
-#define list_add_head( TYPE, MEMBER, HEAD, NEW ) { KERNEL_ASSERT( NEW != NULL ); NEW->next = HEAD->head; HEAD->head = NEW; }
+#define LIST_GET_NEXT( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_next_node( CURRENT->MEMBER ) )
+#define LIST_GET_PREV( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_prev_node( CURRENT->MEMBER ) ) )
+#define LIST_GET_FIRST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, HEAD->head.next ) )
+#define LIST_GET_LAST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, HEAD->head.prev ) )
 
-#define LIST_FOREACH( TYPE, MEMBER, LOOP_VAR, HEAD ) for( TYPE* LOOP_VAR = list_get_first( TYPE, MEMBER, HEAD ); LOOP_VAR != NULL; LOOP_VAR = list_get_next( LOOP_VAR ) )
-
+#define LIST_FOREACH( TYPE, MEMBER, LOOP_VAR, HEAD ) for( TYPE* LOOP_VAR = LIST_GET_FIRST( TYPE, MEMBER, HEAD ); LOOP_VAR != &HEAD->head; LOOP_VAR = LIST_GET_NEXT( TYPE, MEMBER, LOOP_VAR ) )
+    
 #endif //OS_LIST_H

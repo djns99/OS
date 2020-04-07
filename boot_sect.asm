@@ -27,6 +27,8 @@ load_kernel:
     call print_nl
 
     mov bx, KERNEL_OFFSET 
+    mov es, bx 
+    mov bx, 0 
     mov dh, 2
     mov dl, [BOOT_DRIVE]
     call disk_load
@@ -36,7 +38,7 @@ load_kernel:
 BEGIN_PM:
     mov ebx, MSG_PROT_MODE
     call print_string_pm
-    call KERNEL_OFFSET 
+    call 0x10000 
     jmp $ 
 
 BOOT_DRIVE db 0 
