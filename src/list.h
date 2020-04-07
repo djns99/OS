@@ -1,5 +1,6 @@
 #ifndef OS_LIST_H
 #define OS_LIST_H
+
 #include "types.h"
 #include "debug.h"
 
@@ -12,7 +13,8 @@ typedef struct list_node_t
     struct list_node_t* prev;
 } list_node_t;
 
-typedef struct {
+typedef struct
+{
     list_node_t head;
 } list_node_head_t;
 
@@ -30,13 +32,13 @@ bool list_is_empty( list_node_head_t* list )
 
 list_node_t* list_get_next_node( list_node_t* curr )
 {
-    KERNEL_ASSERT( curr != NULL );
+    KERNEL_ASSERT(curr != NULL);
     return curr->next;
 }
 
 list_node_t* list_get_prev_node( list_node_t* curr )
 {
-    KERNEL_ASSERT( curr != NULL );
+    KERNEL_ASSERT(curr != NULL);
     return curr->prev;
 }
 
@@ -58,17 +60,31 @@ void list_insert_before_node( list_node_t* node, list_node_t* to_insert )
 
 void list_insert_tail_node( list_node_head_t* list, list_node_t* node )
 {
-    KERNEL_ASSERT( node != NULL );
-    
+    KERNEL_ASSERT(node != NULL);
+
     // Insert at the tail of the list
-    list_insert_before_node( &list->head, node );
+    list_insert_before_node(&list->head, node);
 }
 
 void list_insert_head_node( list_node_head_t* list, list_node_t* node )
 {
-    KERNEL_ASSERT( node != NULL );
+    KERNEL_ASSERT(node != NULL);
     // Insert at the tail of the list
-    list_insert_after_node( &list->head, node );
+    list_insert_after_node(&list->head, node);
+}
+
+void list_remove_node( list_node_t* node )
+{
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+}
+
+void list_replace_node( list_node_t* old, list_node_t* new )
+{
+    old->prev->next = new;
+    old->next->prev = old;
+    new->next = old->next;
+    new->prev = old->prev;
 }
 
 #define LIST_GET_NEXT( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_next_node( CURRENT->MEMBER ) )
@@ -77,5 +93,5 @@ void list_insert_head_node( list_node_head_t* list, list_node_t* node )
 #define LIST_GET_LAST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, HEAD->head.prev ) )
 
 #define LIST_FOREACH( TYPE, MEMBER, LOOP_VAR, HEAD ) for( TYPE* LOOP_VAR = LIST_GET_FIRST( TYPE, MEMBER, HEAD ); LOOP_VAR != &HEAD->head; LOOP_VAR = LIST_GET_NEXT( TYPE, MEMBER, LOOP_VAR ) )
-    
+
 #endif //OS_LIST_H
