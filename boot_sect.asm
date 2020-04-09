@@ -29,7 +29,7 @@ load_kernel:
     mov bx, KERNEL_OFFSET 
     mov es, bx 
     mov bx, 0 
-    mov dh, 2
+    mov dh, <KERNEL_IMAGE_SECTORS>
     mov dl, [BOOT_DRIVE]
     call disk_load
     ret
