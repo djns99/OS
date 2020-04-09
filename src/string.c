@@ -15,6 +15,20 @@ void os_memset( void* dest, uint8_t val, uint32_t len )
         *(dest8++) = val;
 }
 
+void os_memset16( void* dest, uint16_t val, uint32_t len )
+{
+    uint16_t* dest16 = (uint16_t*)dest;
+    while( len-- )
+        *(dest16++) = val;
+}
+
+void os_memset32( void* dest, uint32_t val, uint32_t len )
+{
+    uint32_t* dest32 = (uint32_t*)dest;
+    while( len-- )
+        *(dest32++) = val;
+}
+
 uint32_t os_strlen( const char* string )
 {
     uint32_t len = 0;

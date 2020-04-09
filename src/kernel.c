@@ -1,12 +1,10 @@
-#include "io.h"
+#include "print.h"
 
 int main()
 {
-    asm("jmp 2");
-    asm("jmp 2");
-    asm("jmp -1");
-    asm("jmp -3");
+    set_fg_colour( FG_D_GREY );
+    set_bg_colour( FG_L_GREY );
+//    clear_screen();
     print("Hello World");
-    while(true);
-    return 0;
+    while (true);
 }
