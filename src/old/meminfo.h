@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "memory.h"
 
-static uint32_t get_memory_size()
+static size_t get_memory_size()
 {
     // 1 GiB for tests
     return 1024*1024*1024;
@@ -19,7 +19,7 @@ static uint8_t* get_memory_start()
     return ptr;
 }
 #else
-static uint32_t get_memory_size()
+static size_t get_memory_size()
 {
     // 1 GiB for tests
     return 0;

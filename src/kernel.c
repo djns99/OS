@@ -1,9 +1,49 @@
 #include "print.h"
+#include "kernel.h"
 
-int main()
+void OS_Init()
 {
-    set_fg_colour( TEXT_D_GREY );
-    set_bg_colour( TEXT_YELLOW );
+    set_fg_colour( TEXT_GREEN );
+    set_bg_colour( TEXT_BLACK );
     clear_screen();
-    print("Hello World");
+    
+    OS_InitMemory();
+}
+
+void OS_Start()
+{
+    // TODO Launch shell
+    
+    // TODO Sleep forever instead of busy loop
+    uint32_t j = 0;
+    while(true)
+    {
+        print("Sleeping");
+        for( uint32_t i = 0; i < ((j >> 2) & 0x3F); i++)
+        {
+            print(".");
+            for( uint32_t i = 0; i < 1<<20u; i++)
+                    asm("nop");
+        }
+
+        print("\n");
+        j++;
+    }
+}
+
+void OS_Abort()
+{
+    print( "\nKernel abort triggered. Ceasing all operation\n" );
+    // Disable interrupt and halts
+    // Requires hard reboot to recover
+    OS_DI();
+    asm("hlt");
+}
+
+extern void init_memory( size_t start, size_t num_sectors );
+
+int entry_point( size_t start, size_t num_sectors )
+{
+    OS_Init();
+    OS_Start();
 }

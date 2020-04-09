@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#define OFFSET_OF( TYPE, MEMBER ) ((uint32_t)&(((TYPE*)0)->MEMBER))
+#define OFFSET_OF( TYPE, MEMBER ) ((size_t)&(((TYPE*)0)->MEMBER))
 #define CONTAINER_OF( TYPE, MEMBER, NODE ) (TYPE*)(((uint8_t*)node_ptr) - OFFSET_OF( TYPE, MEMBER ))
 
 typedef struct list_node_t

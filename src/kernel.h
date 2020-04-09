@@ -77,11 +77,11 @@ BOOL   OS_Free( MEMORY m );
 /*==================================================================  
  *        S T A N D A R D   I N L I N E    P R O C E D U R E S  
  *==================================================================  
- */  
+ */
 
-#define OS_DI()    asm("pushf; pop ax; and %ax, ~0x0200; push ax; popf")  /* disable all interrupts */  
-#define OS_EI()    asm("pushf; pop ax; or %ax, 0x0200; push ax; popf ")  /* enable all interrupts */  
-  
+#define OS_DI()    asm(" cli ")  /* disable all interrupts */
+#define OS_EI()    asm(" sti ")  /* enable all interrupts */
+
 
 /*==================================================================  
  *          O S   I N T E R F A C E    S E M A N T I C S

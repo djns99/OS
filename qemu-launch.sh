@@ -1,6 +1,6 @@
 #!/bin/bash
 
-killall qemu-system-i386 || true
+killall qemu-system-i386 2>/dev/null || true
 set -e
 make -C cmake-build-debug
 

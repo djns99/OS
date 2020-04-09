@@ -1,6 +1,7 @@
 [bits 32]
-[extern main]
+[extern entry_point]
 global _start
 _start:
-call main
+; boot_sect.asm pushed the num sectors before jumping here
+call entry_point
 jmp $
