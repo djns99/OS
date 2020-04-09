@@ -78,17 +78,9 @@ BOOL   OS_Free( MEMORY m );
  *        S T A N D A R D   I N L I N E    P R O C E D U R E S  
  *==================================================================  
  */  
-  
- /* 
-  * NOTE: These assembly instructions are for a Motorolla MC68HC11
-  * processor! You will have to change the assembly instructions if
-  * you are using a different processor - ie. NiosII.
-  *
-  * inline assembly code to disable/enable maskable interrupts   
-  * (N.B. Use with caution.)  
-  */  
-#define OS_DI()    asm(" sei ")  /* disable all interrupts */  
-#define OS_EI()    asm(" cli ")  /* enable all interrupts */  
+
+#define OS_DI()    asm("pushf; pop ax; and %ax, ~0x0200; push ax; popf")  /* disable all interrupts */  
+#define OS_EI()    asm("pushf; pop ax; or %ax, 0x0200; push ax; popf ")  /* enable all interrupts */  
   
 
 /*==================================================================  

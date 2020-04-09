@@ -1,6 +1,6 @@
 #ifndef OS_MEMINFO_H
 #define OS_MEMINFO_H
-#include "types.h"
+#include "../types.h"
 #ifdef TEST_MODE
 #include <stdlib.h>
 #include "memory.h"
