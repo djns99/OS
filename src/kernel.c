@@ -2,9 +2,8 @@
 
 int main()
 {
-    set_fg_colour( FG_D_GREY );
-    set_bg_colour( FG_L_GREY );
-//    clear_screen();
+    set_fg_colour( TEXT_D_GREY );
+    set_bg_colour( TEXT_YELLOW );
+    clear_screen();
     print("Hello World");
-    while (true);
 }

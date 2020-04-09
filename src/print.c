@@ -33,7 +33,7 @@ void write_char( uint8_t chr )
 {
     video_mem_entry_t* entry = get_current_mem_offset();
     entry->chr = chr;
-    entry->colour = 0x0f;
+    entry->colour = curr_colour;
     
     row += col == (TEXT_MODE_WIDTH - 1);
     col = (col + 1) % TEXT_MODE_WIDTH;

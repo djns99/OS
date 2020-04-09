@@ -20,8 +20,8 @@ add_custom_target(boot_sect.bin ALL
         BYPRODUCTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/boot_sect.bin)
 
 add_custom_target(kernel-image.bin ALL
-        cat ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/boot_sect_with_size.asm ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.bin > ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel-image.bin
-        DEPENDS boot_sect_with_size.asm kernel.bin
+        cat ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/boot_sect.bin ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.bin > ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel-image.bin
+        DEPENDS boot_sect.bin kernel.bin
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         BYPRODUCTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel-image.bin)
 
