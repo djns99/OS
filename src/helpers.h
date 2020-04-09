@@ -6,8 +6,7 @@
 static uint8_t os_count_bits_set( uint32_t val )
 {
     uint8_t i = 0;
-    while( val )
-    {
+    while( val ) {
         i += val & 1;
         val >>= 1;
     }
@@ -16,7 +15,7 @@ static uint8_t os_count_bits_set( uint32_t val )
 
 static BOOL os_is_power_two( uint32_t val )
 {
-    return (val & (val - 1)) == 0;
+    return ( val & ( val - 1 ) ) == 0;
 }
 
 static uint8_t os_log2( uint32_t val )

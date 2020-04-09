@@ -13,7 +13,7 @@ void init_memory( size_t start, size_t num_sectors )
 
 void OS_InitMemory()
 {
-    os_memset( global_page_directory, 0x0, sizeof(page_table_entry_t) );
+    os_memset( global_page_directory, 0x0, sizeof( page_table_entry_t ) );
 }
 
 MEMORY OS_Malloc( int val )

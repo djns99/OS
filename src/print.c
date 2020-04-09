@@ -28,7 +28,8 @@ video_mem_entry_t* get_current_mem_ptr()
     return VIDEO_MEMORY + get_current_mem_offset();
 }
 
-void update_cursor() {
+void update_cursor()
+{
     uint16_t pos = get_current_mem_offset();
 
     port_write16(0x3D4, (pos << 8u) | 0x0Fu);
@@ -40,14 +41,15 @@ void clear_row( uint32_t row )
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( VIDEO_MEMORY + row * TEXT_MODE_WIDTH, *(uint16_t*)&entry, TEXT_MODE_WIDTH );
+    os_memset16(VIDEO_MEMORY + row * TEXT_MODE_WIDTH, *(uint16_t*)&entry, TEXT_MODE_WIDTH);
 }
 
-void clear_screen() {
+void clear_screen()
+{
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( VIDEO_MEMORY, *(uint16_t*)&entry, TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT );
+    os_memset16(VIDEO_MEMORY, *(uint16_t*)&entry, TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT);
     row = 0;
     col = 0;
     update_cursor();
@@ -55,11 +57,11 @@ void clear_screen() {
 
 void scroll()
 {
-    while( row-- >= TEXT_MODE_HEIGHT)
+    while ( row-- >= TEXT_MODE_HEIGHT )
     {
         os_memcpy(VIDEO_MEMORY, VIDEO_MEMORY + TEXT_MODE_WIDTH,
                   TEXT_MODE_WIDTH * (TEXT_MODE_HEIGHT - 1) * sizeof(video_mem_entry_t));
-        clear_row( TEXT_MODE_HEIGHT - 1 );
+        clear_row(TEXT_MODE_HEIGHT - 1);
     }
 }
 
@@ -68,12 +70,14 @@ void write_char( uint8_t chr )
     video_mem_entry_t* entry = get_current_mem_ptr();
     entry->chr = chr;
     entry->colour = curr_colour;
-    
+
     row += col == (TEXT_MODE_WIDTH - 1);
     col = (col + 1) % TEXT_MODE_WIDTH;
 
     if ( row >= TEXT_MODE_HEIGHT )
+    {
         scroll();
+    }
 }
 
 void set_fg_colour( uint8_t colour )
@@ -81,6 +85,7 @@ void set_fg_colour( uint8_t colour )
     curr_colour &= 0xF0u;
     curr_colour |= colour & 0xFu;
 }
+
 void set_bg_colour( uint8_t colour )
 {
     curr_colour &= 0x0Fu;
@@ -92,7 +97,9 @@ void newline()
     row++;
     col = 0;
     if ( row >= TEXT_MODE_HEIGHT )
+    {
         scroll();
+    }
 }
 
 void carriage_return()
@@ -102,14 +109,20 @@ void carriage_return()
 
 void print( const char* msg )
 {
-    while( *msg )
+    while ( *msg )
     {
-        if( *msg == '\r' )
+        if ( *msg == '\r' )
+        {
             carriage_return();
-        else if ( *msg == '\n')
+        }
+        else if ( *msg == '\n' )
+        {
             newline();
+        }
         else
-            write_char( *msg );        
+        {
+            write_char(*msg);
+        }
 
         update_cursor();
         msg++;

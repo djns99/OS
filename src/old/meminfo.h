@@ -1,6 +1,7 @@
 #ifndef OS_MEMINFO_H
 #define OS_MEMINFO_H
 #include "../types.h"
+
 #ifdef TEST_MODE
 #include <stdlib.h>
 #include "memory.h"
@@ -19,6 +20,7 @@ static uint8_t* get_memory_start()
     return ptr;
 }
 #else
+
 static size_t get_memory_size()
 {
     // 1 GiB for tests
@@ -30,6 +32,7 @@ static uint8_t* get_memory_start()
     // 1 GiB for tests
     return 0x0;
 }
+
 #endif
 
 

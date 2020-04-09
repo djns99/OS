@@ -6,27 +6,25 @@ void OS_Init()
     set_fg_colour( TEXT_GREEN );
     set_bg_colour( TEXT_BLACK );
     clear_screen();
-    
+
     OS_InitMemory();
 }
 
 void OS_Start()
 {
     // TODO Launch shell
-    
+
     // TODO Sleep forever instead of busy loop
     uint32_t j = 0;
-    while(true)
-    {
-        print("Sleeping");
-        for( uint32_t i = 0; i < ((j >> 2) & 0x3F); i++)
-        {
-            print(".");
-            for( uint32_t i = 0; i < 1<<20u; i++)
+    while( true ) {
+        print( "Sleeping" );
+        for( uint32_t i = 0; i < ( ( j >> 2 ) & 0x3F ); i++ ) {
+            print( "." );
+            for( uint32_t i = 0; i < 1 << 20u; i++ )
                     asm("nop");
         }
 
-        print("\n");
+        print( "\n" );
         j++;
     }
 }

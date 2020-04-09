@@ -1,6 +1,7 @@
 #ifndef OS_MEMORY_H
 #define OS_MEMORY_H
 #include "types.h"
+
 #define MIN_ALLOC_SIZE_LOG ((uint32_t)1u)
 #define MIN_ALLOC_SIZE (1u<<MIN_ALLOC_SIZE_LOG)
 #define ALLOC_RESERVED_SIZE_LOG ((uint32_t)1u)
@@ -20,14 +21,12 @@ typedef uint16_t slab_elem_cb_t;
 
 typedef uint8_t slab_t[SLAB_SIZE];
 
-typedef struct
-{
+typedef struct {
     uint32_t num_slabs;
     slab_t** slabs;
 } slab_list_t;
 
-typedef struct
-{
+typedef struct {
     slab_list_t slab_cache[MAX_CACHE_ENTRIES]; // List for each order of magnitude
     slab_list_t free_slabs;
 } memory_state_t;
