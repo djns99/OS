@@ -17,14 +17,14 @@ void OS_Start()
     // TODO Sleep forever instead of busy loop
     uint32_t j = 0;
     while( true ) {
-        print( "Sleeping" );
-        for( uint32_t i = 0; i < ( ( j >> 2 ) & 0x3F ); i++ ) {
-            print( "." );
-            for( uint32_t i = 0; i < 1 << 20u; i++ )
-                    asm("nop");
-        }
-
-        print( "\n" );
+//        print( "Sleeping" );
+//        for( uint32_t i = 0; i < ( ( j >> 2 ) & 0x3F ); i++ ) {
+//            print( "." );
+//            for( uint32_t i = 0; i < 1 << 20u; i++ )
+//                    asm("nop");
+//        }
+//
+//        print( "\n" );
         j++;
     }
 }
@@ -38,10 +38,11 @@ void OS_Abort()
     asm("hlt");
 }
 
-extern void init_memory( size_t start, size_t num_sectors );
+extern void init_memory( size_t kernel_start, size_t kernel_num_sectors );
 
-int entry_point( size_t start, size_t num_sectors )
+int entry_point( size_t kernel_start, size_t kernel_num_sectors )
 {
+    init_memory( kernel_start, kernel_num_sectors );
     OS_Init();
     OS_Start();
 }
