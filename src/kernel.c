@@ -1,13 +1,19 @@
+#include "interrupt_handling/interrupt_handlers.h"
 #include "print.h"
 #include "kernel.h"
+#include "timer.h"
 
 void OS_Init()
 {
     set_fg_colour( TEXT_GREEN );
     set_bg_colour( TEXT_BLACK );
     clear_screen();
-
+    
+    init_idt();
+    init_timer( 1 );
     OS_InitMemory();
+    
+    OS_EI();
 }
 
 void OS_Start()
@@ -16,17 +22,7 @@ void OS_Start()
 
     // TODO Sleep forever instead of busy loop
     uint32_t j = 0;
-    while( true ) {
-//        print( "Sleeping" );
-//        for( uint32_t i = 0; i < ( ( j >> 2 ) & 0x3F ); i++ ) {
-//            print( "." );
-//            for( uint32_t i = 0; i < 1 << 20u; i++ )
-//                    asm("nop");
-//        }
-//
-//        print( "\n" );
-        j++;
-    }
+    asm("hlt");
 }
 
 void OS_Abort()

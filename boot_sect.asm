@@ -13,12 +13,12 @@ KERNEL_OFFSET equ 0x1000
     call switch_to_pm 
     jmp $ 
 
-%include "./print/boot_sect_print.asm"
-%include "./print/boot_sect_print_hex.asm"
-%include "./disk/boot_sect_disk.asm"
-%include "./32bit/32bit-gdt.asm"
-%include "./32bit/32bit-print.asm"
-%include "./32bit/32bit-switch.asm"
+%include "./boot/boot_sect_print.asm"
+%include "./boot/boot_sect_print_hex.asm"
+%include "./boot/boot_sect_disk.asm"
+%include "./boot/32bit-gdt.asm"
+%include "./boot/32bit-print.asm"
+%include "./boot/32bit-switch.asm"
 
 [bits 16]
 load_kernel:
