@@ -77,12 +77,16 @@ void clear_screen()
     update_cursor();
 }
 
-void write_char( uint8_t chr )
+void write_char_no_advance( uint8_t chr )
 {
     video_mem_entry_t* entry = get_current_mem_ptr();
     entry->chr = chr;
     entry->colour = curr_colour;
+}
 
+void write_char( uint8_t chr )
+{
+    write_char_no_advance( chr );
     col++;
     wrap_cursor();
 }
@@ -208,4 +212,13 @@ void print( const char* msg, ... )
     va_start( args, msg );
     print_safe( msg, true, &args );
     va_end( args );
+}
+
+void backspace()
+{
+    if(col > 0) {
+        col--;
+        write_char_no_advance( ' ' );
+        update_cursor();
+    }
 }

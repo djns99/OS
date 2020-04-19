@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.13.3)
 project(OS C ASM_NASM)
 set(CMAKE_C_COMPILER /usr/local/i386elfgcc/bin/i386-elf-gcc)
-set(CMAKE_C_LINK_EXECUTABLE "/usr/local/i386elfgcc/bin/i386-elf-ld <LINK_FLAGS> -o <TARGET> -Ttext 0x10000 <OBJECTS>")
+set(CMAKE_C_LINK_EXECUTABLE "/usr/local/i386elfgcc/bin/i386-elf-ld <LINK_FLAGS> -o <TARGET> -Ttext 0x10000 <OBJECTS> -L/usr/local/i386elfgcc/lib/gcc/i386-elf/9.3.0 -lgcc")
 set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <INCLUDES> <FLAGS> -f elf -o <OBJECT> <SOURCE>")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 include_directories(src/)
 
 file(GLOB_RECURSE SRC_C_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")

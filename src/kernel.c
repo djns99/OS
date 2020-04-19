@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "timer.h"
 #include "debug.h"
+#include "keyboard.h"
 
 void OS_Init()
 {
@@ -11,7 +12,8 @@ void OS_Init()
     clear_screen();
     
     init_idt();
-    init_timer( 1 );
+    init_timer( 10 );
+    init_keyboard();
     OS_InitMemory();
     
     OS_EI();
@@ -22,7 +24,8 @@ void OS_Start()
     // TODO Launch shell
 
     // TODO Sleep until shutdown
-    while (true);
+    while (true)
+        asm("hlt");
 }
 
 void OS_Abort()

@@ -27,5 +27,6 @@ void set_bg_colour( uint8_t colour );
 void clear_screen();
 
 void print( const char* msg, ... );
+void backspace();
 
 #endif

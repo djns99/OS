@@ -50,46 +50,43 @@ extern int PPPMax[];        /* max CPU in msec of each process in PPP */
 
 /* OS Initialization */
 void OS_Init();
-
 void OS_Start();
-
 void OS_Abort();
 
 /* Process Management primitives */
-PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n );
-
-void OS_Terminate( void );
-
-void OS_Yield( void );
-
-int OS_GetParam( void );
+PID  OS_Create(void (*f)(void), int arg, unsigned int level, unsigned int n);
+void OS_Terminate(void);
+void OS_Yield(void);
+int  OS_GetParam(void);
 
 /* Semaphore primitives */
-void OS_InitSem( int s, int n );
-
-void OS_Wait( int s );
-
-void OS_Signal( int s );
+void OS_InitSem(int s, int n);
+void OS_Wait(int s);
+void OS_Signal(int s);
 
 /* FIFO primitives */
-FIFO OS_InitFiFo();
-
-void OS_Write( FIFO f, int val );
-
-BOOL OS_Read( FIFO f, int* val );
+FIFO  OS_InitFiFo();
+void  OS_Write( FIFO f, int val );
+BOOL  OS_Read( FIFO f, int *val );
 
 /* Memory primitives */
-void OS_InitMemory();
-
+void   OS_InitMemory();
 MEMORY OS_Malloc( int val );
-
-BOOL OS_Free( MEMORY m );
+BOOL   OS_Free( MEMORY m );
 
 /*==================================================================  
  *        S T A N D A R D   I N L I N E    P R O C E D U R E S  
  *==================================================================  
  */
 
+/* 
+ * NOTE: These assembly instructions are for a Motorolla MC68HC11
+ * processor! You will have to change the assembly instructions if
+ * you are using a different processor - ie. NiosII.
+ *
+ * inline assembly code to disable/enable maskable interrupts   
+ * (N.B. Use with caution.)  
+ */
 #define OS_DI()    asm(" cli ")  /* disable all interrupts */
 #define OS_EI()    asm(" sti ")  /* enable all interrupts */
 
@@ -316,4 +313,4 @@ BOOL OS_Free( MEMORY m );
  *    otherwise return FALSE.
  */
 
-#endif /* _OS_H_ */  
+#endif /* _OS_H_ */

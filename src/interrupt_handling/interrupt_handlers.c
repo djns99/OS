@@ -141,7 +141,6 @@ void isr_handler( registers_t r )
 
 void irq_handler( registers_t r )
 {
-    print( "Received irq: %d\n", r.int_no );
     send_eoi( r.int_no );
 
     if( irq_handlers[ r.int_no ] != NULL )

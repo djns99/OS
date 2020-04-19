@@ -3,9 +3,10 @@
 #include "io_ports.h"
 #include "print.h"
 
+uint64_t tick = 0;
 void handler( registers_t r )
 {
-    print( "Timer tick\n" );
+
 }
 
 void init_timer( uint32_t freq )
