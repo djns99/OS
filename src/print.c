@@ -83,6 +83,7 @@ void write_char( uint8_t chr )
     entry->chr = chr;
     entry->colour = curr_colour;
 
+    col++;
     wrap_cursor();
 }
 

@@ -38,8 +38,7 @@ load_kernel:
 BEGIN_PM:
     mov ebx, MSG_PROT_MODE
     call print_string_pm
-    push <KERNEL_IMAGE_SECTORS> ; Push number of sectors
-    push 0x10000 ; Push start address in RAM
+    push <KERNEL_END_ADDRESS> ; Push end address
     jmp 0x10000 ; Jmp to 0x10000 
 
 BOOT_DRIVE db 0 

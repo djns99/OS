@@ -2,6 +2,7 @@
 #include "print.h"
 #include "kernel.h"
 #include "timer.h"
+#include "debug.h"
 
 void OS_Init()
 {
@@ -20,25 +21,25 @@ void OS_Start()
 {
     // TODO Launch shell
 
-    // TODO Sleep forever instead of busy loop
-    uint32_t j = 0;
-    asm("hlt");
+    // TODO Sleep until shutdown
+    while (true);
 }
 
 void OS_Abort()
 {
     print( "\nKernel abort triggered. Ceasing all operation\n" );
+    // TODO Actually power down
     // Disable interrupt and halts
     // Requires hard reboot to recover
     OS_DI();
     asm("hlt");
 }
 
-extern void init_memory( size_t kernel_start, size_t kernel_num_sectors );
+extern void init_memory( void* kernel_end );
 
-int entry_point( size_t kernel_start, size_t kernel_num_sectors )
+int entry_point( void* kernel_end )
 {
-    init_memory( kernel_start, kernel_num_sectors );
+    init_memory( kernel_end );
     OS_Init();
     OS_Start();
 }

@@ -9,23 +9,20 @@
 page_table_entry_t* global_page_directory;
 
 uint32_t memory_start_page = 0;
-uint32_t kernel_start = 0;
-uint32_t kernel_size = 0;
+uintptr_t kernel_end = NULL;
 
-void init_memory( size_t _kernel_start, size_t _kernel_num_sectors )
+void init_memory( void* _kernel_end )
 {
-    kernel_start = _kernel_start;
-    kernel_size = _kernel_num_sectors * SECTOR_SIZE;
+    kernel_end = (uintptr_t)_kernel_end;
 }
 
 void OS_InitMemory()
 {
-    KERNEL_ASSERT( kernel_start != 0, "Did not configure the kernel location" );
-    KERNEL_ASSERT( kernel_size != 0, "Did not configure the kernel size" );
-    // Set usable RAM to start directly after OS
-    memory_start_page = kernel_start + kernel_size;
+    KERNEL_ASSERT( kernel_end != 0, "Did not configure the kernel location" );
+    // Set usable RAM to start on the first page after OS
+    memory_start_page = (kernel_end - (kernel_end % PAGE_SIZE)) + PAGE_SIZE;
 
-    print( "Usable RAM at 0x%x (0x%x + 0x%x)\n", memory_start_page, kernel_start, kernel_size );
+    print( "Usable RAM at 0x%x\n", memory_start_page );
     
     global_page_directory = (page_table_entry_t*) memory_start_page;
     os_memset( global_page_directory, 0x0, sizeof( page_table_entry_t ) );
