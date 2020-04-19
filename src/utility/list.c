@@ -1,5 +1,5 @@
 #include "list.h"
-#include "debug.h"
+#include "utility/debug.h"
 
 void init_list( list_node_head_t* list )
 {
@@ -72,9 +72,34 @@ void list_insert_head_node( list_node_head_t* list, list_node_t* node )
 void list_remove_node( list_node_t* node )
 {
     KERNEL_ASSERT( node != NULL, "Tried to access NULL list" );
+    KERNEL_ASSERT( node->next == node, "Cannot remove head node from list" );
 
     node->prev->next = node->next;
     node->next->prev = node->prev;
+}
+
+list_node_t* list_pop_head( list_node_head_t * list )
+{
+    KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
+
+    if( list_is_empty( list ) )
+        return NULL;
+    
+    list_node_t* head = list->head.next;
+    list_remove_node( head );
+    return head;
+}
+
+list_node_t* list_pop_tail( list_node_head_t * list )
+{
+    KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
+
+    if( list_is_empty( list ) )
+        return NULL;
+    
+    list_node_t* tail = list->head.prev;
+    list_remove_node( tail );
+    return tail;
 }
 
 void list_replace_node( list_node_t* old, list_node_t* new )
@@ -87,3 +112,14 @@ void list_replace_node( list_node_t* old, list_node_t* new )
     new->next = old->next;
     new->prev = old->prev;
 }
+
+void list_advance_head( list_node_head_t* list )
+{
+    KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
+
+    if( list_is_empty( list ) )
+        return;
+    
+    list_insert_tail_node( list, list_pop_head( list ) );
+}
+

@@ -1,7 +1,7 @@
-#include "debug.h"
-#include "string.h"
-#include "print.h"
-#include "types.h"
+#include "utility/debug.h"
+#include "utility/string.h"
+#include "utility/print.h"
+#include "utility/types.h"
 #include "interrupt_handlers.h"
 #include "PIC.h"
 

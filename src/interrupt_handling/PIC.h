@@ -2,8 +2,8 @@
 #define OS_PIC_H
 // Some magic from https://wiki.osdev.org/PIC
 
-#include "types.h"
-#include "io_ports.h"
+#include "utility/types.h"
+#include "peripherals/io_ports.h"
 
 #define PIC_MASTER_CONTROL (port_t)0x20
 #define PIC_MASTER_DATA (port_t)(PIC_MASTER_CONTROL + 1)

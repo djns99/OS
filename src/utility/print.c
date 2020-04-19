@@ -2,8 +2,8 @@
 #include "types.h"
 #include "print.h"
 #include "string.h"
-#include "io_ports.h"
-#include "debug.h"
+#include "peripherals/io_ports.h"
+#include "utility/debug.h"
 
 #define TEXT_MODE_WIDTH 80u
 #define TEXT_MODE_HEIGHT 25u

@@ -21,4 +21,9 @@ typedef uint32_t ssize_t;
 typedef uint32_t bool;
 #define true 1
 #define false 0
+
+#define INT32_MAX 0x7FFFFFFF
+#define INT32_MIN -0x80000000
+#define UINT32_MAX 0xFFFFFFFFu
+#define UINT32_MIN 0x0u
 #endif

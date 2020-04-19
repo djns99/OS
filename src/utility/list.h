@@ -19,7 +19,6 @@ void init_list( list_node_head_t* list );
 
 bool list_is_empty( list_node_head_t* list );
 
-
 list_node_t* list_get_next_node( list_node_t* curr );
 
 list_node_t* list_get_prev_node( list_node_t* curr );
@@ -34,7 +33,13 @@ void list_insert_head_node( list_node_head_t* list, list_node_t* node );
 
 void list_remove_node( list_node_t* node );
 
+list_node_t* list_pop_head( list_node_head_t* list );
+
+list_node_t* list_pop_tail( list_node_head_t* list );
+
 void list_replace_node( list_node_t* old, list_node_t* new );
+
+void list_advance_head( list_node_head_t* list );
 
 #define LIST_GET_NEXT( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_next_node( CURRENT->MEMBER ) )
 #define LIST_GET_PREV( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_prev_node( CURRENT->MEMBER ) ) )

@@ -38,8 +38,7 @@ load_kernel:
 BEGIN_PM:
     mov ebx, MSG_PROT_MODE
     call print_string_pm
-    push <KERNEL_END_ADDRESS> ; Push end address
-    jmp 0x10000 ; Jmp to 0x10000 
+    jmp 0x10000 ; Jmp to kernel start
 
 BOOT_DRIVE db 0 
 MSG_REAL_MODE db "Started in 16-bit Real Mode", 0

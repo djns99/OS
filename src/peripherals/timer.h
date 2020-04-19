@@ -1,6 +1,6 @@
 #ifndef OS_TIMER_H
 #define OS_TIMER_H
-#include "types.h"
+#include "utility/types.h"
 
 void init_timer( uint32_t freq );
 

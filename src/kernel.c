@@ -1,9 +1,9 @@
 #include "interrupt_handling/interrupt_handlers.h"
-#include "print.h"
+#include "utility/print.h"
 #include "kernel.h"
-#include "timer.h"
-#include "debug.h"
-#include "keyboard.h"
+#include "peripherals/timer.h"
+#include "utility/debug.h"
+#include "peripherals/keyboard.h"
 
 void OS_Init()
 {
@@ -12,7 +12,7 @@ void OS_Init()
     clear_screen();
 
     init_idt();
-    init_timer( 10 );
+    init_timer( 1000 );
     init_keyboard();
     OS_InitMemory();
 
@@ -38,11 +38,8 @@ void OS_Abort()
     asm("hlt");
 }
 
-extern void init_memory( void* kernel_end );
-
-int entry_point( void* kernel_end )
+int entry_point()
 {
-    init_memory( kernel_end );
     OS_Init();
     OS_Start();
 }

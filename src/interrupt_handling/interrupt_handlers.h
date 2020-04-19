@@ -1,6 +1,6 @@
 #ifndef OS_INTERRUPT_HANDLERS_H
 #define OS_INTERRUPT_HANDLERS_H
-#include "types.h"
+#include "utility/types.h"
 
 #define IRQ0 32
 #define IRQ1 33

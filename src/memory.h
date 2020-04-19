@@ -1,8 +1,8 @@
 #ifndef OS_MEMORY_H
 #define OS_MEMORY_H
 
-#include "types.h"
-#include "list.h"
+#include "utility/types.h"
+#include "utility/list.h"
 
 #define PAGE_SIZE 4096
 typedef uint8_t page_t[PAGE_SIZE];
