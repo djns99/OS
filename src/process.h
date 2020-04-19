@@ -13,7 +13,7 @@ typedef void (* process_function_t)( void );
 
 typedef uint32_t sporadic_execution_state_t;
 typedef enum {
-BLOCKED, READY, EXECUTING
+    BLOCKED, READY, EXECUTING
 } SporadicExeState;
 
 typedef struct {
@@ -26,14 +26,14 @@ typedef struct {
     pid_t pid;
     list_node_head_t thread_list;
     list_node_t scheduling_list;
-    
+
     int arg;
     process_function_t function;
-    
+
     process_type_t type;
     // Periodic process info
     periodic_name_t periodic_name;
-    
+
     // Sporadic process info
     SporadicExeState state;
 } pcb_t;
