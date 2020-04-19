@@ -7,17 +7,17 @@ section .text
 global root_page_directory
 global _start
 _start:
-mov eax, (_kernel_end - 0xC0000000) ; Get where we need to map up to
-mov ebx, (virtual_page_table - 0xC0000000 + 768 * 4) ; Start table entry
-mov ecx, (_kernel_start - 0xC0000000) ; Start physical offset
-or dword ecx, 0x3 ; Flags for page table entry
+mov eax, (_kernel_end - 0xC0000000 + 0x100 + 3) ; Get where we need to map up to
+mov ebx, (virtual_page_table - 0xC0000000 + 16 * 4) ; Start table entry
+mov ecx, (_kernel_start - 0xC0000000 + 0x3) ; Start physical offset
 fill_table:
-    mov [ebx], ecx
+    cmp ecx, _kernel_start - 0xC0000000
+    mov [ebx], ecx ; Write to page table entry
     add ecx, 4096
     add ebx, 4
     cmp ecx, eax
-    jle fill_table
-mov dword [ebx], 0x00b8003 ; Remap the video memory
+    jl fill_table
+mov dword [virtual_page_table - 0xC0000000 + 1023 * 4], 0x00b8003 ; Remap the video memory
 mov dword [root_page_directory - 0xC0000000], (virtual_page_table - 0xC0000000 + 0x03)
 mov dword [root_page_directory - 0xC0000000 + 768 * 4], (virtual_page_table - 0xC0000000 + 0x03)
 mov eax, (root_page_directory - 0xC0000000)
@@ -26,9 +26,12 @@ mov eax, cr0
 or eax, 0x80010000
 mov cr0, eax
 lea eax, [vm_mode]
-jmp [eax]
+jmp eax
 vm_mode:
-mov dword [root_page_directory], 0x0 ; Wipe old physical mapping 
+mov dword [root_page_directory], 0x0 ; Wipe old physical mapping
+mov eax, cr3
+mov cr3, eax 
+mov esp, stack_top ; Set the stack to our temporary kernel stack
 call entry_point
 jmp $
 
@@ -38,3 +41,8 @@ root_page_directory:
     times 4096 db 0
 virtual_page_table:
     times 4096 db 0
+    
+section .bss
+stack_bottom:
+    resb 16384
+stack_top:

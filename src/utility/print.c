@@ -13,7 +13,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t colour;
 } video_mem_entry_t;
 
-#define VIDEO_MEMORY ((video_mem_entry_t*) 0xb8000)
+#define VIDEO_MEMORY ((video_mem_entry_t*)(0xC03FF000)) // Value mem was mapped to on boot
 
 size_t row = 0;
 size_t col = 0;
