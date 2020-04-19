@@ -20,8 +20,8 @@ void init_memory( size_t _kernel_start, size_t _kernel_num_sectors )
 
 void OS_InitMemory()
 {
-    KERNEL_ASSERT( kernel_start != 0 );
-    KERNEL_ASSERT( kernel_size != 0 );
+    KERNEL_ASSERT( kernel_start != 0, "Did not configure the kernel location" );
+    KERNEL_ASSERT( kernel_size != 0, "Did not configure the kernel size" );
     // Set usable RAM to start directly after OS
     memory_start_page = kernel_start + kernel_size;
 

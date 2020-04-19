@@ -45,6 +45,27 @@ void clear_row( uint32_t row )
     os_memset16( VIDEO_MEMORY + row * TEXT_MODE_WIDTH, *(uint16_t*) &entry, TEXT_MODE_WIDTH );
 }
 
+void scroll()
+{
+    while( row-- >= TEXT_MODE_HEIGHT ) {
+        os_memcpy( VIDEO_MEMORY, VIDEO_MEMORY + TEXT_MODE_WIDTH,
+                   TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - 1 ) * sizeof( video_mem_entry_t ) );
+        clear_row( TEXT_MODE_HEIGHT - 1 );
+    }
+}
+
+void wrap_cursor()
+{
+    row += col / TEXT_MODE_WIDTH;
+    col %= TEXT_MODE_WIDTH;
+
+    if( row >= TEXT_MODE_HEIGHT ) {
+        scroll();
+    }
+}
+
+
+
 void clear_screen()
 {
     video_mem_entry_t entry;
@@ -56,27 +77,13 @@ void clear_screen()
     update_cursor();
 }
 
-void scroll()
-{
-    while( row-- >= TEXT_MODE_HEIGHT ) {
-        os_memcpy( VIDEO_MEMORY, VIDEO_MEMORY + TEXT_MODE_WIDTH,
-                   TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - 1 ) * sizeof( video_mem_entry_t ) );
-        clear_row( TEXT_MODE_HEIGHT - 1 );
-    }
-}
-
 void write_char( uint8_t chr )
 {
     video_mem_entry_t* entry = get_current_mem_ptr();
     entry->chr = chr;
     entry->colour = curr_colour;
 
-    row += col == ( TEXT_MODE_WIDTH - 1 );
-    col = ( col + 1 ) % TEXT_MODE_WIDTH;
-
-    if( row >= TEXT_MODE_HEIGHT ) {
-        scroll();
-    }
+    wrap_cursor();
 }
 
 void set_fg_colour( uint8_t colour )
@@ -112,8 +119,8 @@ void print_num_u( uint32_t val, uint32_t base )
         return;
     }
     const char digits[16] = "0123456789abcdef";
-    KERNEL_ASSERT( base != 0 );
-    KERNEL_ASSERT( base <= sizeof( digits ) );
+    KERNEL_ASSERT( base != 0, "Illegal base 0" );
+    KERNEL_ASSERT( base <= sizeof( digits ), "Base too large" );
 
     char converted_string[32];
     char* curr_char = converted_string;
@@ -145,6 +152,10 @@ void print_safe( const char* msg, bool use_format_string, va_list* args )
             carriage_return();
         } else if( *msg == '\n' ) {
             newline();
+        } else if( *msg == '\t' ) {
+            col -= col % 4;
+            col += 4;
+            wrap_cursor();
         } else if( use_format_string && *msg == '%' ) {
             handle_printf_arg( *++msg, args );
         } else {
@@ -159,6 +170,10 @@ void print_safe( const char* msg, bool use_format_string, va_list* args )
 void handle_printf_arg( char chr, va_list* args )
 {
     switch( chr ) {
+        case 'p':
+            print_safe( "0x", false, NULL );
+            print_num_u( (uint32_t)va_arg( *args, void* ), 16 );
+            return;
         case 'x':
             print_num_u( va_arg( *args, uint32_t ), 16 );
             return;

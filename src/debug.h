@@ -4,8 +4,8 @@
 #include "kernel.h"
 #include "print.h"
 
-#define KERNEL_ASSERT( condition ) do{ if(!(condition)) {                                                  \
- print( "\nKernel assert failed at on condition " #condition ", at %s:%d\n", __FILE__, __LINE__ );        \
+#define KERNEL_ASSERT( condition, msg ) do{ if(!(condition)) {                                                  \
+ print( "\nKernel assert failed at %s:%d:\n\t%s\nWith message:\n%s", __FILE__, __LINE__,#condition, (msg) );        \
  OS_Abort();                                                                                            \
 } } while(0)
 
