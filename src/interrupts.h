@@ -2,5 +2,4 @@
 #define OS_INTERRUPTS_H
 
 
-
 #endif //OS_INTERRUPTS_H

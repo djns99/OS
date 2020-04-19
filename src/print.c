@@ -65,7 +65,6 @@ void wrap_cursor()
 }
 
 
-
 void clear_screen()
 {
     video_mem_entry_t entry;
@@ -177,7 +176,7 @@ void handle_printf_arg( char chr, va_list* args )
     switch( chr ) {
         case 'p':
             print_safe( "0x", false, NULL );
-            print_num_u( (uint32_t)va_arg( *args, void* ), 16 );
+            print_num_u( (uint32_t) va_arg( *args, void* ), 16 );
             return;
         case 'x':
             print_num_u( va_arg( *args, uint32_t ), 16 );
@@ -198,7 +197,7 @@ void handle_printf_arg( char chr, va_list* args )
             print_safe( va_arg( *args, const char* ), false, NULL );
             return;
         case 'c':
-            write_char( (char)va_arg( *args, int ) );
+            write_char( (char) va_arg( *args, int ) );
             return;
         default:
             write_char( chr );
@@ -216,7 +215,7 @@ void print( const char* msg, ... )
 
 void backspace()
 {
-    if(col > 0) {
+    if( col > 0 ) {
         col--;
         write_char_no_advance( ' ' );
         update_cursor();

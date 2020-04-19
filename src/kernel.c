@@ -10,12 +10,12 @@ void OS_Init()
     set_fg_colour( TEXT_GREEN );
     set_bg_colour( TEXT_BLACK );
     clear_screen();
-    
+
     init_idt();
     init_timer( 10 );
     init_keyboard();
     OS_InitMemory();
-    
+
     OS_EI();
 }
 
@@ -24,8 +24,8 @@ void OS_Start()
     // TODO Launch shell
 
     // TODO Sleep until shutdown
-    while (true)
-        asm("hlt");
+    while( true )
+            asm("hlt");
 }
 
 void OS_Abort()
