@@ -9,7 +9,7 @@ void OS_Init()
 {
     set_fg_colour( TEXT_GREEN );
     set_bg_colour( TEXT_BLACK );
-//    clear_screen();
+    clear_screen();
 
     init_idt();
     init_timer( 1000 );
