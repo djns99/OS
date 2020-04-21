@@ -1,0 +1,1 @@
+../boot/32bit-gdt.asm
