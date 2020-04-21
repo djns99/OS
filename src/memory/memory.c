@@ -4,12 +4,17 @@
 #include "utility/debug.h"
 #include "utility/print.h"
 
-extern uint8_t root_page_directory[4096] asm("root_page_directory");
-extern size_t kernel_end asm("_kernel_end");
+extern page_t root_page_directory;
+extern size_t kernel_start;
+extern size_t kernel_end;
 
 void OS_InitMemory()
 {
-//    KERNEL_ASSERT( kernel_end != 0, "Did not configure the kernel location" );
+    KERNEL_ASSERT( root_page_directory != NULL, "Failed to get the initial page directory" );
+    KERNEL_ASSERT( kernel_start != 0, "Failed to get the kernel start" );
+    print( "%p %p", root_page_directory, kernel_start );
+    KERNEL_ASSERT( kernel_end != 0, "Failed to get the kernel end" );
+
 //    // Set usable RAM to start on the first page after OS
 //    memory_start_page = ( kernel_end - ( kernel_end % PAGE_SIZE ) ) + PAGE_SIZE;
 //

@@ -21,7 +21,7 @@ void OS_Init()
     
     init_processes();
     init_syscall();
-    syscall( NUM_SYSCALLS );
+//    syscall( NUM_SYSCALLS );
 
     init_interrupts();
 }

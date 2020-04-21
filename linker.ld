@@ -3,7 +3,7 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 0xC0010000;
-	_kernel_start = .;
+	kernel_start = .;
 	.text ALIGN (4K) : AT (ADDR (.text) - 0xC0000000)
 	{
 		*(.text)
@@ -24,5 +24,5 @@ SECTIONS
 		*(.bss)
 		*(.bootstrap_stack)
 	}
-	_kernel_end = .;
+	kernel_end = .;
 }

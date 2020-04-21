@@ -1,7 +1,7 @@
 [bits 32]
 [extern entry_point]
-[extern _kernel_end]
-[extern _kernel_start]
+[extern kernel_end]
+[extern kernel_start]
 [extern gdt_descriptor]
 
 KERNEL_OFFSET equ 0xC0000000
@@ -10,11 +10,11 @@ section .text
 global root_page_directory
 global _start
 _start:
-mov eax, (_kernel_end - KERNEL_OFFSET + 0x100 + 3) ; Get where we need to map up to
+mov eax, (kernel_end - KERNEL_OFFSET + 0x100 + 3) ; Get where we need to map up to
 mov ebx, (virtual_page_table - KERNEL_OFFSET + 16 * 4) ; Start table entry
-mov ecx, (_kernel_start - KERNEL_OFFSET + 0x3) ; Start physical offset
+mov ecx, (kernel_start - KERNEL_OFFSET + 0x3) ; Start physical offset
 fill_table:
-    cmp ecx, _kernel_start - KERNEL_OFFSET
+    cmp ecx, kernel_start - KERNEL_OFFSET
     mov [ebx], ecx ; Write to page table entry
     add ecx, 4096
     add ebx, 4

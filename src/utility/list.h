@@ -4,7 +4,7 @@
 #include "types.h"
 
 #define OFFSET_OF( TYPE, MEMBER ) ((size_t)&(((TYPE*)0)->MEMBER))
-#define CONTAINER_OF( TYPE, MEMBER, NODE ) (TYPE*)(((uint8_t*)node_ptr) - OFFSET_OF( TYPE, MEMBER ))
+#define CONTAINER_OF( TYPE, MEMBER, NODE ) (TYPE*)(((uint8_t*)(NODE)) - OFFSET_OF( TYPE, MEMBER ))
 
 typedef struct list_node_t {
     struct list_node_t* next;
@@ -41,10 +41,10 @@ void list_replace_node( list_node_t* old, list_node_t* new );
 
 void list_advance_head( list_node_head_t* list );
 
-#define LIST_GET_NEXT( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_next_node( CURRENT->MEMBER ) )
-#define LIST_GET_PREV( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_prev_node( CURRENT->MEMBER ) ) )
-#define LIST_GET_FIRST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, HEAD->head.next ) )
-#define LIST_GET_LAST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, HEAD->head.prev ) )
+#define LIST_GET_NEXT( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_next_node( (CURRENT)->MEMBER ) )
+#define LIST_GET_PREV( TYPE, MEMBER, CURRENT ) ( CONTAINER_OF( TYPE, MEMBER, list_get_prev_node( (CURRENT)->MEMBER ) ) )
+#define LIST_GET_FIRST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, (HEAD)->head.next ) )
+#define LIST_GET_LAST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, (HEAD)->head.prev ) )
 
 #define LIST_FOREACH( TYPE, MEMBER, LOOP_VAR, HEAD ) for( TYPE* LOOP_VAR = LIST_GET_FIRST( TYPE, MEMBER, HEAD ); LOOP_VAR != &HEAD->head; LOOP_VAR = LIST_GET_NEXT( TYPE, MEMBER, LOOP_VAR ) )
 

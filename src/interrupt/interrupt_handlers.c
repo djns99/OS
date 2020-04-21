@@ -75,7 +75,7 @@ idt_t idt;
 idt_register_t idt_reg;
 irq_handler_t irq_handlers[IDT_ENTRIES];
 
-void register_internal_handler( uint32_t irq_num, void(* function)( void ) )
+void register_internal_handler( uint32_t irq_num, void(* function)( void ), uint32_t type )
 {
     KERNEL_ASSERT( function, "NULL Interrupt handler provided" );
 
@@ -83,7 +83,7 @@ void register_internal_handler( uint32_t irq_num, void(* function)( void ) )
     idt[ irq_num ].low_ptr = (uint16_t) ( f_ptr & 0xFFFF );
     idt[ irq_num ].high_ptr = (uint16_t) ( ( f_ptr >> 16 ) & 0xFFFF );
     idt[ irq_num ].selector = 0x08;
-    idt[ irq_num ].type_attr = 0x8E;
+    idt[ irq_num ].type_attr = type;
     idt[ irq_num ].zero = 0x0;
 }
 
@@ -102,13 +102,13 @@ void init_idt()
 
     const uint32_t num_isr = sizeof( isr_funcs ) / sizeof( isr_funcs[ 0 ] );
     for( uint32_t i = 0; i < num_isr; i++ ) {
-        register_internal_handler( i, isr_funcs[ i ] );
+        register_internal_handler( i, isr_funcs[ i ], 0x8E );
     }
 
     remap_pic();
 
     for( uint32_t i = 0; i < sizeof( irq_funcs ) / sizeof( irq_funcs[ 0 ] ); i++ ) {
-        register_internal_handler( num_isr + i, irq_funcs[ i ] );
+        register_internal_handler( num_isr + i, irq_funcs[ i ], 0x8E );
     }
 
     idt_reg.limit = sizeof( idt ) - 1;

@@ -1,23 +1,23 @@
+#include "utility/debug.h"
 #include "interrupt.h"
 #include "kernel.h"
 #include "utility/types.h"
-
-uint32_t num_disabled = 0;
+#include "processes/process.h"
 
 void init_interrupts()
 {
-    num_disabled = 0;
     OS_EI();
 }
 
 void enable_interrupts()
 {
-    if( --num_disabled == 0)
+    KERNEL_ASSERT( get_current_process()->interrupt_disables > 0, "Process tried to enable interrupts without corresponding disable" );
+    if( --get_current_process()->interrupt_disables == 0 )
             OS_EI();
 }
 
 void disable_interrupts()
 {
-    if( num_disabled++ == 0)
+    if( get_current_process()->interrupt_disables++ == 0)
             OS_DI();
 }

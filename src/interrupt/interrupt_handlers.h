@@ -1,7 +1,6 @@
 #ifndef OS_INTERRUPT_HANDLERS_H
 #define OS_INTERRUPT_HANDLERS_H
 #include "utility/types.h"
-#include "processes/context_switch.h"
 
 typedef struct {
     uint32_t ds;
