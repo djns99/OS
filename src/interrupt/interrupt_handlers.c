@@ -123,7 +123,7 @@ void register_handler( uint32_t irq_num, irq_handler_t handler )
     irq_handlers[ irq_num ] = handler;
 }
 
-void isr_handler( registers_t r )
+void isr_handler( interrupt_params_t r )
 {
     /* To print the message which defines every exception */
     const char* exception_messages[] = { "Division By Zero", "Debug", "Non Maskable Interrupt", "Breakpoint",
@@ -140,10 +140,10 @@ void isr_handler( registers_t r )
     print( "Received interrupt: %d (%s)\n", r.int_no, exception_messages[ r.int_no ] );
 }
 
-void irq_handler( registers_t r )
+void irq_handler( interrupt_params_t r )
 {
     send_eoi( r.int_no );
 
     if( irq_handlers[ r.int_no ] != NULL )
-        irq_handlers[ r.int_no ]( r );
+        irq_handlers[ r.int_no ]( &r );
 }

@@ -1,4 +1,4 @@
-#include "interrupt_handling/interrupt_handlers.h"
+#include "interrupt/interrupt_handlers.h"
 #include "keyboard.h"
 #include "io_ports.h"
 #include "utility/print.h"
@@ -16,7 +16,7 @@ const char sc_ascii[] = { '?', '?', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                           'L', ';', '\'', '`', '?', '\\', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', '?', '?',
                           '?', ' ' };
 
-void keyboard_handler( registers_t r )
+void keyboard_handler( interrupt_params_t* r )
 {
     uint8_t scancode = port_read8( 0x60 );
 

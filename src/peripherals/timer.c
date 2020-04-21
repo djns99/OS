@@ -1,11 +1,11 @@
 #include "timer.h"
-#include "interrupt_handling/interrupt_handlers.h"
+#include "interrupt/interrupt_handlers.h"
 #include "io_ports.h"
 #include "utility/print.h"
 
 uint64_t tick = 0;
 
-void handler( registers_t r )
+void handler( interrupt_params_t* r )
 {
 }
 

@@ -1,9 +1,12 @@
-#include "interrupt_handling/interrupt_handlers.h"
+#include "processes/syscall.h"
+#include "interrupt/interrupt_handlers.h"
+#include "interrupt/interrupt.h"
 #include "utility/print.h"
 #include "kernel.h"
 #include "peripherals/timer.h"
 #include "utility/debug.h"
 #include "peripherals/keyboard.h"
+#include "processes/process.h"
 
 void OS_Init()
 {
@@ -15,8 +18,12 @@ void OS_Init()
     init_timer( 1000 );
     init_keyboard();
     OS_InitMemory();
+    
+    init_processes();
+    init_syscall();
+    syscall( NUM_SYSCALLS );
 
-    OS_EI();
+    init_interrupts();
 }
 
 void OS_Start()
@@ -34,7 +41,7 @@ void OS_Abort()
     // TODO Actually power down
     // Disable interrupt and halts
     // Requires hard reboot to recover
-    OS_DI();
+    disable_interrupts();
     asm("hlt");
 }
 

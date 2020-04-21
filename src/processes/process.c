@@ -1,3 +1,4 @@
+#include "interrupt/interrupt.h"
 #include "utility/debug.h"
 #include "utility/string.h"
 #include "process.h"
@@ -14,6 +15,8 @@ periodic_name_t PPPMax[MAXPROCESS] = { INT32_MAX };
 
 list_node_head_t sporadic_scheduling_list;
 list_node_head_t device_scheduling_list;
+
+void schedule_sporadic();
 
 void init_processes()
 {
@@ -68,10 +71,15 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     }
 }
 
+void schedule_sporadic()
+{
+    
+}
+
 void schedule_next_sporadic()
 {
     list_advance_head( &sporadic_scheduling_list );
-    // schedule_sporadic();
+    schedule_sporadic();
 }
 
 void free_periodic( pcb_t* pcb )
@@ -98,12 +106,12 @@ void free_device( pcb_t* pcb )
 
 void OS_Terminate()
 {
-    OS_DI();
+    disable_interrupts();
     pcb_t* pcb = &pcb_pool[ current_process - 1 ];
     switch( pcb->type ) {
         case PERIODIC:
             free_periodic( pcb );
-            // schedule_sporadic();
+             schedule_sporadic();
             break;
         case SPORADIC:
             free_sporadic( pcb );
@@ -116,26 +124,27 @@ void OS_Terminate()
             //          schedule_sporadic();
             break;
     }
-    OS_EI();
+    enable_interrupts();
 }
 
 void OS_Yield()
 {
-    OS_DI();
+    disable_interrupts();
     switch( pcb_pool[ current_process - 1 ].type ) {
         case PERIODIC:
-            // schedule_sporadic();
+            schedule_sporadic();
             break;
         case SPORADIC:
             schedule_next_sporadic();
             break;
         case DEVICE:
-            // if(!continue_next_device())
-            //      if(!continue_periodic())
-            //          schedule_sporadic();
+//             if(!continue_next_device())
+//                  if(!continue_periodic())
+//                      schedule_sporadic();
             break;
     }
-    OS_EI();
+    
+    enable_interrupts();
 }
 
 int OS_GetParam()
