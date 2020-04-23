@@ -45,7 +45,10 @@ root_page_directory:
     times 4096 db 0
 virtual_page_table:
     times 4096 db 0
-    
+
+global act_kernel_end
+act_kernel_end: dd 1234
+
 section .bss
 stack_bottom:
     resb 16384

@@ -3,6 +3,7 @@ layout regs
 tui reg all
 file cmake-build-debug/bin/kernel_readable.bin
 si
-#break *0x10000
+break *0x1000
+
 break entry_point
 continue
