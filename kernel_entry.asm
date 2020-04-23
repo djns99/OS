@@ -3,6 +3,7 @@
 [extern kernel_end]
 [extern kernel_start]
 [extern gdt_descriptor]
+[extern load_memmap]
 
 KERNEL_OFFSET equ 0xC0000000
 
@@ -10,6 +11,8 @@ section .text
 global root_page_directory
 global _start
 _start:
+lea eax, [load_memmap - KERNEL_OFFSET]
+call eax
 mov eax, (kernel_end - KERNEL_OFFSET + 0x100 + 3) ; Get where we need to map up to
 mov ebx, (virtual_page_table - KERNEL_OFFSET + 16 * 4) ; Start table entry
 mov ecx, (kernel_start - KERNEL_OFFSET + 0x3) ; Start physical offset
@@ -47,6 +50,7 @@ virtual_page_table:
     times 4096 db 0
     
 section .bss
+align 16
 stack_bottom:
     resb 16384
 stack_top:

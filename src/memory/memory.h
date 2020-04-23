@@ -4,7 +4,8 @@
 #include "utility/types.h"
 #include "utility/list.h"
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE_LOG 12u
+#define PAGE_SIZE (1u<<PAGE_SIZE_LOG)
 typedef uint8_t page_t[PAGE_SIZE];
 typedef page_t* page_table_entry_t[PAGE_SIZE / sizeof( page_t* )];
 

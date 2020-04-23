@@ -3,25 +3,36 @@
 #include "utility/string.h"
 #include "utility/debug.h"
 #include "utility/print.h"
+#include "meminfo.h"
+#include "utility/bitmap.h"
 
 extern page_t root_page_directory;
-extern size_t kernel_start;
-extern size_t kernel_end;
+
+#define MAX_MEMORY_SIZE UINT32_MAX
+#define MAX_NUM_PAGES (MAX_MEMORY_SIZE>>PAGE_SIZE_LOG)
+
+DECLARE_BITMAP( free_page_bitmap, MAX_NUM_PAGES );
 
 void OS_InitMemory()
 {
+    print("%u\n", get_mem_size() );
+    
     KERNEL_ASSERT( root_page_directory != NULL, "Failed to get the initial page directory" );
-    KERNEL_ASSERT( kernel_start != 0, "Failed to get the kernel start" );
-    print( "%p %p", root_page_directory, kernel_start );
-    KERNEL_ASSERT( kernel_end != 0, "Failed to get the kernel end" );
-
-//    // Set usable RAM to start on the first page after OS
-//    memory_start_page = ( kernel_end - ( kernel_end % PAGE_SIZE ) ) + PAGE_SIZE;
-//
-//    print( "Usable RAM at 0x%x\n", memory_start_page );
-//
-//    global_page_directory = (page_table_entry_t*) memory_start_page;
-//    os_memset( global_page_directory, 0x0, sizeof( page_table_entry_t ) );
+    KERNEL_ASSERT( get_kernel_start() != 0, "Failed to get the kernel start" );
+    KERNEL_ASSERT( get_kernel_end() != 0, "Failed to get the kernel end" );
+    KERNEL_ASSERT( get_phys_kernel_start() != 0, "Failed to get the physical kernel start" );
+    KERNEL_ASSERT( get_phys_kernel_end() != 0, "Failed to get the physical kernel end" );
+    print( "%p %p %p %p %p\n", root_page_directory, get_kernel_start(), get_kernel_end(), get_phys_kernel_start(), get_phys_kernel_end() );
+    
+    bitmap_clear_all( free_page_bitmap );
+    
+    
+    
+    for( uint32_t i = 0; i < get_mem_size() >> PAGE_SIZE_LOG; i++ )
+    {
+        bool res = meminfo_phys_page_is_valid( i );
+        bitmap_assign_bit( free_page_bitmap, i, res );
+    }
 }
 
 MEMORY OS_Malloc( int val )

@@ -45,7 +45,7 @@ void OS_Abort()
     asm("hlt");
 }
 
-int entry_point()
+void entry_point()
 {
     OS_Init();
     OS_Start();

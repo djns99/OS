@@ -31,4 +31,6 @@ static uint8_t os_log2_up( uint32_t val )
     return os_log2( val ) + !os_is_power_two( val );
 }
 
+#define CEIL_DIV( a, b ) ( ( a + b - 1 ) / b )
+
 #endif //OS_HELPERS_H
