@@ -14,44 +14,67 @@ typedef struct {
 } __attribute__((packed)) memmap_entry_t;
 extern const memmap_entry_t memmap_table[1024];
 
-uint32_t get_mem_size()
+typedef struct {
+    uint32_t start;
+    uint32_t length;
+} filtered_memmap_entry_t;
+uint32_t num_filtered_entries = 0;
+filtered_memmap_entry_t filtered_memmap_table[1024];
+
+uint32_t usable_ram = 0;
+
+size_t get_mem_size()
+{
+    KERNEL_ASSERT( usable_ram != 0, "Called mem size before page map was initialised" );
+    return usable_ram;
+}
+
+void init_page_map()
 {
     KERNEL_ASSERT( memmap_table != NULL, "Memory map was not linked" );
-    if( memmap_num_entries == 0xdeadbeef ) {
+    if( memmap_num_entries == 0xdeadbeef )
+    {
         print( "BiOS failed to load memory map. I dont know what to do here\n" );
         OS_Abort();
-        return 0;
+        return;
     }
 
-    print( "Memory map of size: %u\n", memmap_num_entries );
-    uint32_t usable_ram_size = 0;
     for( uint32_t i = 0; i < memmap_num_entries; i++ ) {
-//        print( "| %p - %p ( Length %u Type %u ) |\n", (uint32_t) memmap_table[ i ].start,
-//               (uint32_t) memmap_table[ i ].start + (uint32_t) memmap_table[ i ].length,
-//               (uint32_t) memmap_table[ i ].length, (uint32_t) memmap_table[ i ].type );
-        usable_ram_size += ( memmap_table[ i ].type == USABLE_RAM ) ? memmap_table[ i ].length : 0;
+        print( "| %p - %p ( Length %u Type %u ) |\n", (uint32_t) memmap_table[ i ].start,
+               (uint32_t) memmap_table[ i ].start + (uint32_t) memmap_table[ i ].length,
+               (uint32_t) memmap_table[ i ].length, (uint32_t) memmap_table[ i ].type );
+        if( memmap_table[ i ].type == USABLE_RAM )
+        {
+            filtered_memmap_table[ num_filtered_entries ].start = (uint32_t) memmap_table[ i ].start;
+            filtered_memmap_table[ num_filtered_entries ].length = (uint32_t) memmap_table[ i ].length;
+            if( filtered_memmap_table[ num_filtered_entries ].start == 0 ) {
+                // Disallow zero TODO Is this needed?
+                filtered_memmap_table[ num_filtered_entries ].start += PAGE_SIZE;
+                filtered_memmap_table[ num_filtered_entries ].length += PAGE_SIZE;
+            }
+            usable_ram += filtered_memmap_table[ num_filtered_entries ].length;
+            num_filtered_entries++;
+        }
     }
+}
 
-    return usable_ram_size;
+size_t get_page_phys_address( uint32_t page_id )
+{
+    uint32_t offset_left = page_id * PAGE_SIZE;
+    for( uint32_t i = 0; i < num_filtered_entries; i++ )
+    {
+        if( filtered_memmap_table[ i ].length > offset_left )
+            return filtered_memmap_table[ i ].start + offset_left;
+        offset_left -= filtered_memmap_table[ i ].length;
+    }
+    return NULL;
 }
 
 bool meminfo_phys_page_is_valid( uint32_t page_id )
 {
-    const uint8_t* effective_address = (uint8_t*) ( page_id * PAGE_SIZE );
+    const size_t effective_address = get_page_phys_address( page_id );
     if( get_phys_kernel_start() <= effective_address && effective_address < get_phys_kernel_end() )
-        return true;
+        return false; // Overlaps with kernel not allowed to alloc
 
-    bool found = false;
-    for( uint32_t i = 0; i < memmap_num_entries; i++ ) {
-        if( memmap_table[ i ].start <= (uint32_t)effective_address &&
-            memmap_table[ i ].start + memmap_table[ i ].length > (uint32_t)effective_address ) {
-            if( memmap_table[ i ].type != USABLE_RAM )
-                return false;
-
-            // Dont return since we can potentially have overlapping memory regions
-            found = true;
-        }
-    }
-
-    return found;
+    return true;
 }

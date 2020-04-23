@@ -3,6 +3,11 @@
 
 #define FOREACH_WORD( bmp, loop_var ) for( uint32_t* loop_var = bmp + 1; loop_var != bmp + CEIL_DIV( bmp[ 0 ], 32 ) + 1; loop_var++ )
 
+void init_variable_bitmap( bitmap_t bmp, uint32_t num_bits )
+{
+    bmp[ 0 ] = num_bits;
+}
+
 void bitmap_clear_all( bitmap_t bmp )
 {
     bitmap_assign_all( bmp, false );

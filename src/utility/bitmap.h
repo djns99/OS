@@ -2,8 +2,11 @@
 #define OS_BITMAP_H
 #include "helpers.h"
 
-#define DECLARE_BITMAP( name, bits ) uint32_t name[ CEIL_DIV( bits, 32 ) + 1 ] = { bits }
+#define DECLARE_BITMAP( name, bits ) DECLARE_VARIABLE_BITMAP( name, bits ) = { bits }
+#define DECLARE_VARIABLE_BITMAP( name, max_bits ) uint32_t name[ CEIL_DIV( max_bits, 32 ) + 1 ]
 typedef uint32_t* bitmap_t;
+
+void init_variable_bitmap( bitmap_t bmp, uint32_t num_bits );
 
 void bitmap_clear_all( bitmap_t bmp );
 void bitmap_set_all( bitmap_t bmp );
