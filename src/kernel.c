@@ -18,7 +18,7 @@ void OS_Init()
     init_timer( 1000 );
     init_keyboard();
     OS_InitMemory();
-    
+
     init_processes();
     init_syscall();
 //    syscall( NUM_SYSCALLS );

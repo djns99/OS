@@ -51,7 +51,6 @@ typedef struct {
             uint32_t next_wake_up;
         };
     };
-    
 } pcb_t;
 
 pid_t current_process;

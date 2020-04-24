@@ -37,30 +37,28 @@ bool address_is_in_range( filtered_memmap_entry_t entry, size_t address )
 void init_page_map()
 {
     KERNEL_ASSERT( memmap_table != NULL, "Memory map was not linked" );
-    if( memmap_num_entries == 0xdeadbeef )
-    {
+    if( memmap_num_entries == 0xdeadbeef ) {
         print( "BiOS failed to load memory map. I dont know what to do here\n" );
         OS_Abort();
         return;
     }
 
     for( uint32_t i = 0; i < memmap_num_entries; i++ ) {
-        
+
         if( memmap_table[ i ].start > MAX_TOTAL_MEMORY_SIZE )
             continue;
-                
+
         print( "| %p - %p ( Length %u Type %u ) |\n", (uint32_t) memmap_table[ i ].start,
                (uint32_t) memmap_table[ i ].start + (uint32_t) memmap_table[ i ].length - 1,
                (uint32_t) memmap_table[ i ].length, (uint32_t) memmap_table[ i ].type );
-        if( memmap_table[ i ].type == USABLE_RAM )
-        {
+        if( memmap_table[ i ].type == USABLE_RAM ) {
             filtered_memmap_table[ num_filtered_entries ].start = (uint32_t) memmap_table[ i ].start;
             filtered_memmap_table[ num_filtered_entries ].length = (uint32_t) memmap_table[ i ].length;
-            
+
             // Cap to 4GiB ram
             if( memmap_table[ i ].start + memmap_table[ i ].length > MAX_TOTAL_MEMORY_SIZE )
                 filtered_memmap_table[ num_filtered_entries ].length = UINT32_MAX - memmap_table[ i ].start;
-            
+
             if( filtered_memmap_table[ num_filtered_entries ].start == 0 ) {
                 // Disallow zero TODO Is this needed?
                 filtered_memmap_table[ num_filtered_entries ].start += PAGE_SIZE;
@@ -75,8 +73,7 @@ void init_page_map()
 size_t page_id_to_phys_address( uint32_t page_id )
 {
     uint32_t offset_left = page_id * PAGE_SIZE;
-    for( uint32_t i = 0; i < num_filtered_entries; i++ )
-    {
+    for( uint32_t i = 0; i < num_filtered_entries; i++ ) {
         if( filtered_memmap_table[ i ].length > offset_left )
             return filtered_memmap_table[ i ].start + offset_left;
         offset_left -= filtered_memmap_table[ i ].length;
@@ -87,11 +84,10 @@ size_t page_id_to_phys_address( uint32_t page_id )
 uint32_t phys_address_to_page_id( size_t address )
 {
     uint32_t accumulated_offset = 0;
-    for( uint32_t i = 0; i < num_filtered_entries; i++ )
-    {
+    for( uint32_t i = 0; i < num_filtered_entries; i++ ) {
         if( address_is_in_range( filtered_memmap_table[ i ], address ) )
             return accumulated_offset + ( address - filtered_memmap_table[ i ].start );
-        
+
         accumulated_offset += filtered_memmap_table[ i ].length;
     }
     return NULL;

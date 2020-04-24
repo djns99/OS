@@ -4,7 +4,7 @@
 
 void syscall_handler( interrupt_params_t* params )
 {
-    print("SYSCALL %d\n", params->eax);
+    print( "SYSCALL %d\n", params->eax );
     switch( params->eax ) {
         default: {
             // Return with error
@@ -22,5 +22,5 @@ void syscall( syscall_t syscall )
 {
     KERNEL_ASSERT( SYSCALL_IRQ == 0x80, "SYSCALL IRQ number did not match expected" );
     asm volatile ("mov %0, %%eax;"
-        "int $0x80;"::"r" (syscall));
+                  "int $0x80;"::"r" (syscall));
 }

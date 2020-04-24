@@ -15,9 +15,9 @@ void OS_InitMemory()
 
 MEMORY OS_Malloc( int val )
 {
-    if( val == 0)
+    if( val == 0 )
         return NULL;
-    
+
     // User alloc
     return 0;
 }

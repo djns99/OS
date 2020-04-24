@@ -12,6 +12,7 @@ void bitmap_clear_all( bitmap_t bmp )
 {
     bitmap_assign_all( bmp, false );
 }
+
 void bitmap_set_all( bitmap_t bmp )
 {
     bitmap_assign_all( bmp, true );
@@ -19,42 +20,41 @@ void bitmap_set_all( bitmap_t bmp )
 
 void bitmap_assign_all( bitmap_t bmp, bool val )
 {
-    FOREACH_WORD( bmp, word )
-    {
-        *word = val ? 0xFFFFFFFF : 0x0; 
+    FOREACH_WORD( bmp, word ) {
+        *word = val ? 0xFFFFFFFF : 0x0;
     }
 }
 
 void bitmap_flip_all( bitmap_t bmp )
 {
-    FOREACH_WORD( bmp, word )
-    {
+    FOREACH_WORD( bmp, word ) {
         *word ^= 0xFFFFFFFF;
     }
 }
 
 void bitmap_clear_bit( bitmap_t bmp, uint32_t idx )
 {
-    bitmap_assign_bit( bmp, idx, false ); 
+    bitmap_assign_bit( bmp, idx, false );
 }
 
 void bitmap_set_bit( bitmap_t bmp, uint32_t idx )
 {
     bitmap_assign_bit( bmp, idx, true );
 }
+
 void bitmap_assign_bit( bitmap_t bmp, uint32_t idx, bool val )
 {
     KERNEL_ASSERT( idx < bmp[ 0 ], "Index out of range" );
     if( val )
-        bmp[ idx / 32 + 1 ] |= (1u<<(idx%32u));
+        bmp[ idx / 32 + 1 ] |= ( 1u << ( idx % 32u ) );
     else
-        bmp[ idx / 32 + 1 ] &= ~(1u<<(idx%32u));
+        bmp[ idx / 32 + 1 ] &= ~( 1u << ( idx % 32u ) );
 }
 
 void bitmap_flip_bit( bitmap_t bmp, uint32_t idx )
 {
     KERNEL_ASSERT( idx < bmp[ 0 ], "Index out of range" );
-    bmp[ idx / 32 + 1 ] ^= (1u<<(idx%32u));
+    bmp[ idx / 32 + 1 ] ^= ( 1u << ( idx % 32u ) );
 }
 
 uint32_t bitmap_count_set( bitmap_t bmp )
