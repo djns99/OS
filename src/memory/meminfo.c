@@ -15,18 +15,23 @@ typedef struct {
 extern const memmap_entry_t memmap_table[1024];
 
 typedef struct {
-    uint32_t start;
-    uint32_t length;
+    size_t start;
+    size_t length;
 } filtered_memmap_entry_t;
 uint32_t num_filtered_entries = 0;
 filtered_memmap_entry_t filtered_memmap_table[1024];
 
-uint32_t usable_ram = 0;
+size_t usable_ram = 0;
 
 size_t get_mem_size()
 {
     KERNEL_ASSERT( usable_ram != 0, "Called mem size before page map was initialised" );
     return usable_ram;
+}
+
+bool address_is_in_range( filtered_memmap_entry_t entry, size_t address )
+{
+    return entry.start <= address && entry.start + entry.length > address;
 }
 
 void init_page_map()
@@ -58,7 +63,7 @@ void init_page_map()
     }
 }
 
-size_t get_page_phys_address( uint32_t page_id )
+size_t page_id_to_phys_address( uint32_t page_id )
 {
     uint32_t offset_left = page_id * PAGE_SIZE;
     for( uint32_t i = 0; i < num_filtered_entries; i++ )
@@ -70,9 +75,22 @@ size_t get_page_phys_address( uint32_t page_id )
     return NULL;
 }
 
-bool meminfo_phys_page_is_valid( uint32_t page_id )
+uint32_t phys_address_to_page_id( size_t address )
 {
-    const size_t effective_address = get_page_phys_address( page_id );
+    uint32_t accumulated_offset = 0;
+    for( uint32_t i = 0; i < num_filtered_entries; i++ )
+    {
+        if( address_is_in_range( filtered_memmap_table[ i ], address ) )
+            return accumulated_offset + ( address - filtered_memmap_table[ i ].start );
+        
+        accumulated_offset += filtered_memmap_table[ i ].length;
+    }
+    return NULL;
+}
+
+bool meminfo_phys_page_is_kernel( uint32_t page_id )
+{
+    const size_t effective_address = page_id_to_phys_address( page_id );
     if( get_phys_kernel_start() <= effective_address && effective_address < get_phys_kernel_end() )
         return false; // Overlaps with kernel not allowed to alloc
 
