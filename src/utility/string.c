@@ -8,7 +8,7 @@ void os_memcpy( void* dest, const void* src, size_t len )
         *( dest8++ ) = *( src8++ );
 }
 
-void os_memset( void* dest, uint8_t val, size_t len )
+void os_memset8( void* dest, uint8_t val, size_t len )
 {
     uint8_t* dest8 = (uint8_t*) dest;
     while( len-- )

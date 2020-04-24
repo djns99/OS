@@ -33,11 +33,14 @@ void init_physical_memory()
 size_t alloc_phys_page() {
     disable_interrupts();
     const uint32_t page_id = bitmap_find_first_set( free_page_bitmap );
+    if( page_id == get_bitmap_bits( free_page_bitmap ) )
+        return NULL;
     enable_interrupts();
     return page_id_to_phys_address( page_id );
 }
 
 void free_phys_page( size_t address ) {
+    KERNEL_ASSERT( address, "Tried to free NULL page" );
     disable_interrupts();
     const uint32_t page_id = phys_address_to_page_id( address );
     enable_interrupts();

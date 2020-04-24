@@ -116,7 +116,7 @@ void carriage_return()
     col = 0;
 }
 
-void print_num_u( uint32_t val, uint32_t base )
+void print_num_u( uint64_t val, uint32_t base )
 {
     if( !val ) {
         write_char( '0' );
@@ -137,7 +137,7 @@ void print_num_u( uint32_t val, uint32_t base )
         write_char( *--curr_char );
 }
 
-void print_num_s( int32_t val, uint32_t base )
+void print_num_s( int64_t val, uint32_t base )
 {
     if( val < 0 ) {
         val = -val;
@@ -198,6 +198,21 @@ void handle_printf_arg( char chr, va_list* args )
             return;
         case 'c':
             write_char( (char) va_arg( *args, int ) );
+            return;
+        case 'U':
+            print_num_u( va_arg( *args, uint64_t ), 10 );
+            return;
+        case 'D':
+            print_num_u( va_arg( *args, int64_t ), 10 );
+            return;
+        case 'X':
+            print_num_u( va_arg( *args, uint64_t ), 16 );
+            return;
+        case 'B':
+            print_num_u( va_arg( *args, int64_t ), 2 );
+            return;
+        case 'O':
+            print_num_u( va_arg( *args, uint64_t ), 8 );
             return;
         default:
             write_char( chr );

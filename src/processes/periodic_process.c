@@ -11,7 +11,7 @@ periodic_name_t PPPMax[MAXPROCESS] = { INT32_MAX };
 
 void init_periodic_state()
 {
-    os_memset( periodic_pool, 0x0, sizeof( periodic_pool ) );
+    os_memset8( periodic_pool, 0x0, sizeof( periodic_pool ) );
 
     // TODO
 }

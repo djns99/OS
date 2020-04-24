@@ -31,7 +31,7 @@ size_t get_mem_size()
 
 bool address_is_in_range( filtered_memmap_entry_t entry, size_t address )
 {
-    return entry.start <= address && entry.start + entry.length > address;
+    return entry.start <= address && address - entry.start < entry.length;
 }
 
 void init_page_map()
@@ -45,17 +45,26 @@ void init_page_map()
     }
 
     for( uint32_t i = 0; i < memmap_num_entries; i++ ) {
+        
+        if( memmap_table[ i ].start > MAX_TOTAL_MEMORY_SIZE )
+            continue;
+                
         print( "| %p - %p ( Length %u Type %u ) |\n", (uint32_t) memmap_table[ i ].start,
-               (uint32_t) memmap_table[ i ].start + (uint32_t) memmap_table[ i ].length,
+               (uint32_t) memmap_table[ i ].start + (uint32_t) memmap_table[ i ].length - 1,
                (uint32_t) memmap_table[ i ].length, (uint32_t) memmap_table[ i ].type );
         if( memmap_table[ i ].type == USABLE_RAM )
         {
             filtered_memmap_table[ num_filtered_entries ].start = (uint32_t) memmap_table[ i ].start;
             filtered_memmap_table[ num_filtered_entries ].length = (uint32_t) memmap_table[ i ].length;
+            
+            // Cap to 4GiB ram
+            if( memmap_table[ i ].start + memmap_table[ i ].length > MAX_TOTAL_MEMORY_SIZE )
+                filtered_memmap_table[ num_filtered_entries ].length = UINT32_MAX - memmap_table[ i ].start;
+            
             if( filtered_memmap_table[ num_filtered_entries ].start == 0 ) {
                 // Disallow zero TODO Is this needed?
                 filtered_memmap_table[ num_filtered_entries ].start += PAGE_SIZE;
-                filtered_memmap_table[ num_filtered_entries ].length += PAGE_SIZE;
+                filtered_memmap_table[ num_filtered_entries ].length -= PAGE_SIZE;
             }
             usable_ram += filtered_memmap_table[ num_filtered_entries ].length;
             num_filtered_entries++;

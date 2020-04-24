@@ -11,12 +11,15 @@ typedef uint8_t page_t[PAGE_SIZE];
 #define PAGE_TABLE_NUM_ENTRIES (PAGE_SIZE / sizeof( page_t* ))
 #define PAGE_TABLE_BYTES_ADDRESSED (PAGE_TABLE_NUM_ENTRIES * PAGE_SIZE)
 typedef page_t* page_table_t[PAGE_TABLE_NUM_ENTRIES];
-typedef page_table_t* page_directory_t[PAGE_TABLE_NUM_ENTRIES];
+typedef page_t** page_table_ref_t;
+typedef page_table_ref_t page_directory_t[PAGE_TABLE_NUM_ENTRIES];
+typedef page_table_ref_t* page_directory_ref_t;
 
 
 // Kernel gets upper quarter
+#define KERNEL_VIRTUAL_BASE 0xC0000000u
 #define MAX_TOTAL_MEMORY_SIZE UINT32_MAX
-#define MAX_KERNEL_MEMORY_SIZE (MAX_TOTAL_MEMORY_SIZE >> 2)
+#define MAX_KERNEL_MEMORY_SIZE (MAX_TOTAL_MEMORY_SIZE - KERNEL_VIRTUAL_BASE)
 #define MAX_USER_MEMORY_SIZE (MAX_TOTAL_MEMORY_SIZE - MAX_KERNEL_MEMORY_SIZE)
 
 #define MAX_TOTAL_NUM_PAGES (MAX_TOTAL_MEMORY_SIZE>>PAGE_SIZE_LOG)
@@ -24,7 +27,7 @@ typedef page_table_t* page_directory_t[PAGE_TABLE_NUM_ENTRIES];
 #define MAX_USER_NUM_PAGES (MAX_USER_MEMORY_SIZE>>PAGE_SIZE_LOG)
 
 typedef struct {
-    page_directory_t* page_directory;
+    page_directory_ref_t page_directory;
     list_node_head_t alloc_list[30];
     list_node_head_t free_list;
 } process_memory_state_t;

@@ -9,4 +9,8 @@
  OS_Abort();                                                                                                                     \
 } } while(0)
 
+#define KERNEL_WARNING( condition, msg ) do{ if(!(condition)) {                                                                   \
+ print( "\nKernel warning at %s:%d\nAssertion:\n\t%s\nWith message:\n\t%s", __FILE__, __LINE__,#condition, (msg) );        \
+} } while(0)
+
 #endif //OS_DEBUG_H

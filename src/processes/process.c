@@ -11,7 +11,7 @@ list_node_head_t stopped_processes;
 void init_processes()
 {
     KERNEL_ASSERT( INVALIDPID == 0, "Invalid pid is expected to be 0" );
-    os_memset( pcb_pool, 0x0, sizeof( pcb_pool ) );
+    os_memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
     init_device_state();
     init_sporadic_state();
     init_periodic_state();
