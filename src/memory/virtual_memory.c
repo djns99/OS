@@ -1,3 +1,4 @@
+#include "utility/helpers.h"
 #include "utility/debug.h"
 #include "virtual_memory.h"
 #include "memory.h"
@@ -148,11 +149,12 @@ bool alloc_page_at_address( void* virt_address_ptr, uint32_t flags )
     return true;
 }
 
-bool kalloc_page_at_address( void* virt_address, uint32_t flags )
+bool kalloc_page_at_address( void* virt_address_ptr, uint32_t flags )
 {
-    if( (size_t) virt_address >= KERNEL_VIRTUAL_BASE )
-        return false;
-
+    size_t virt_address = (size_t) virt_address_ptr;
+    KERNEL_ASSERT( virt_address >= KERNEL_VIRTUAL_BASE, "Tried to allocate kernel page outside kernel heap" );
+    KERNEL_ASSERT( virt_address_ptr < get_kernel_start() || virt_address_ptr >= get_kernel_end(), "Tried to allocate over kernel code" );
+    
     KERNEL_ASSERT( page_directory_entry_is_valid( address_to_directory_entry( (size_t) virt_address ) ),
                    "Kernel heap should prealloc all entries" );
 
@@ -167,7 +169,6 @@ bool kalloc_page_at_address( void* virt_address, uint32_t flags )
 void clone_root_page_directory( page_directory_ref_t page_directory )
 {
     // TODO this is scary
-
 }
 
 void init_virtual_memory()
@@ -182,4 +183,14 @@ void init_virtual_memory()
             KERNEL_ASSERT( res, "Failed to allocate heap for kernel. Please get more memory" );
         }
     }
+}
+
+void* kernel_heap_start()
+{
+    return (void*)(CEIL_DIV( ((size_t)get_kernel_end()), PAGE_SIZE ) * PAGE_SIZE);
+}
+
+void* kernel_heap_end()
+{
+    return (void*)(CEIL_DIV( MAX_TOTAL_MEMORY_SIZE, PAGE_SIZE ) * PAGE_SIZE);
 }

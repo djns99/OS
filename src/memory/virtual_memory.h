@@ -12,6 +12,8 @@ void init_virtual_memory();
 void* alloc_any_virtual_page( uint32_t flags );
 bool alloc_page_at_address( void* address, uint32_t flags );
 
+void* kernel_heap_start();
+void* kernel_heap_end();
 bool kalloc_page_at_address( void* address, uint32_t flags );
 
 
