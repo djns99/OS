@@ -18,7 +18,9 @@ typedef page_table_ref_t* page_directory_ref_t;
 
 // Kernel gets upper quarter
 #define KERNEL_VIRTUAL_BASE 0xC0000000u
-#define MAX_TOTAL_MEMORY_SIZE UINT32_MAX
+// Last page in virtual address space is reserved for page table so it is not addressable
+// +1 since UINT32_MAX is 1 below 4GiB 
+#define MAX_TOTAL_MEMORY_SIZE (UINT32_MAX - PAGE_TABLE_BYTES_ADDRESSED + 1)
 #define MAX_KERNEL_MEMORY_SIZE (MAX_TOTAL_MEMORY_SIZE - KERNEL_VIRTUAL_BASE)
 #define MAX_USER_MEMORY_SIZE (MAX_TOTAL_MEMORY_SIZE - MAX_KERNEL_MEMORY_SIZE)
 

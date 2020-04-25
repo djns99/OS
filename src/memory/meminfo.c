@@ -60,10 +60,11 @@ void init_page_map()
                 filtered_memmap_table[ num_filtered_entries ].length = UINT32_MAX - memmap_table[ i ].start;
 
             if( filtered_memmap_table[ num_filtered_entries ].start == 0 ) {
-                // Disallow zero TODO Is this needed?
+                // Disallow zero
                 filtered_memmap_table[ num_filtered_entries ].start += PAGE_SIZE;
                 filtered_memmap_table[ num_filtered_entries ].length -= PAGE_SIZE;
             }
+
             usable_ram += filtered_memmap_table[ num_filtered_entries ].length;
             num_filtered_entries++;
         }

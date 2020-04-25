@@ -13,7 +13,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t colour;
 } video_mem_entry_t;
 
-#define VIDEO_MEMORY ((video_mem_entry_t*)(0xC03FF000)) // Value mem was mapped to on boot
+extern video_mem_entry_t video_memory[];
 
 size_t row = 0;
 size_t col = 0;
@@ -26,7 +26,7 @@ size_t get_current_mem_offset()
 
 video_mem_entry_t* get_current_mem_ptr()
 {
-    return VIDEO_MEMORY + get_current_mem_offset();
+    return video_memory + get_current_mem_offset();
 }
 
 void update_cursor()
@@ -37,18 +37,18 @@ void update_cursor()
     port_write16( 0x3D4, ( pos & 0xFF00u ) | 0x0E );
 }
 
-void clear_row( uint32_t row )
+void clear_row( uint32_t row_to_clear )
 {
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( VIDEO_MEMORY + row * TEXT_MODE_WIDTH, *(uint16_t*) &entry, TEXT_MODE_WIDTH );
+    os_memset16( video_memory + row_to_clear * TEXT_MODE_WIDTH, *(uint16_t*) &entry, TEXT_MODE_WIDTH );
 }
 
 void scroll()
 {
     while( row-- >= TEXT_MODE_HEIGHT ) {
-        os_memcpy( VIDEO_MEMORY, VIDEO_MEMORY + TEXT_MODE_WIDTH,
+        os_memcpy( video_memory, video_memory + TEXT_MODE_WIDTH,
                    TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - 1 ) * sizeof( video_mem_entry_t ) );
         clear_row( TEXT_MODE_HEIGHT - 1 );
     }
@@ -64,13 +64,12 @@ void wrap_cursor()
     }
 }
 
-
 void clear_screen()
 {
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( VIDEO_MEMORY, *(uint16_t*) &entry, TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT );
+    os_memset16( video_memory, *(uint16_t*) &entry, TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT );
     row = 0;
     col = 0;
     update_cursor();

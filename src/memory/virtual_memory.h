@@ -9,10 +9,10 @@
 extern page_directory_t root_page_directory;
 
 void init_virtual_memory();
-void* alloc_any_virtual_page( page_directory_ref_t page_directory, uint32_t flags );
-bool alloc_page_at_address( page_directory_ref_t page_directory, void* address, uint32_t flags );
+void* alloc_any_virtual_page( uint32_t flags );
+bool alloc_page_at_address( void* address, uint32_t flags );
 
-bool kalloc_page_at_address( page_directory_ref_t page_directory, void* address, uint32_t flags );
+bool kalloc_page_at_address( void* address, uint32_t flags );
 
 
 #endif //OS_VIRTUAL_MEMORY_H
