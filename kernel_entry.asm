@@ -8,7 +8,6 @@
 KERNEL_OFFSET equ 0xC0000000
 
 section .text
-global root_page_directory
 global _start
 _start:
 lea eax, [load_memmap - KERNEL_OFFSET]

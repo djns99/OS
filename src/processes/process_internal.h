@@ -5,7 +5,9 @@
 #include "sporadic_process.h"
 #include "periodic_process.h"
 
-pcb_t pcb_pool[MAXPROCESS];
+extern pid_t current_process;
+extern pcb_t idle_pcb;
+extern pcb_t pcb_pool[MAXPROCESS];
 
 pcb_t* alloc_common();
 void free_common( pcb_t* );

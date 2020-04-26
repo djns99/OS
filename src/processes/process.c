@@ -1,3 +1,4 @@
+#include "memory/virtual_memory.h"
 #include "interrupt/interrupt.h"
 #include "utility/debug.h"
 #include "utility/string.h"
@@ -6,11 +7,27 @@
 #include "utility/types.h"
 #include "process_internal.h"
 
+#define DEFAULT_STACK_SIZE 1024*1024
+
+// Define the actual values here so we dont get multiple definitions etc.
+pid_t current_process;
+pcb_t idle_pcb;
+pcb_t pcb_pool[MAXPROCESS];
+
 list_head_t stopped_processes;
+
+void register_entry_proc() {
+    // Init process to idle
+    current_process = IDLE;
+    idle_pcb.pid = IDLE;
+    idle_pcb.type = PERIODIC; // TODO Is this correct?
+    idle_pcb.interrupt_disables = 1; // Start from 1 
+}
 
 void init_processes()
 {
     KERNEL_ASSERT( INVALIDPID == 0, "Invalid pid is expected to be 0" );
+    KERNEL_ASSERT( current_process == IDLE, "Did not register the entry process! Do this first" );
     os_memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
     init_device_state();
     init_sporadic_state();
@@ -36,6 +53,20 @@ void free_common( pcb_t* pcb )
 {
     KERNEL_ASSERT( pcb->interrupt_disables != 0, "Interrupts were enabled while freeing request" );
     pcb->state = STOPPED;
+
+    disable_interrupts();
+    list_insert_tail_node( &stopped_processes, &pcb->scheduling_list );
+    enable_interrupts();
+}
+
+void cleanup_terminated()
+{
+    LIST_FOREACH( pcb_t, scheduling_list, stopped_proc, &stopped_processes ) {
+        // Cleanup address space
+        cleanup_process_address_space( stopped_proc->context.cr3 );
+        // Actually free the stopped process
+        stopped_proc->pid = INVALIDPID;
+    }
 }
 
 void sched_common( pcb_t* new_proc )
@@ -45,13 +76,16 @@ void sched_common( pcb_t* new_proc )
         context_switch( &new_proc->context, &get_current_process()->context );
         current_process = new_proc->pid;
     }
+    // Clean up terminated process
+    cleanup_terminated();
     enable_interrupts();
 }
 
 void OS_Terminate()
 {
-    disable_interrupts(); // TODO Spinloock
-    pcb_t* pcb = &pcb_pool[ current_process - 1 ];
+    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
+    disable_interrupts();
+    pcb_t* pcb = get_current_process();
     switch( pcb->type ) {
         case PERIODIC:
             free_periodic( pcb );
@@ -64,15 +98,16 @@ void OS_Terminate()
             break;
     }
 
-    OS_Yield(); // Yield the CPU
+    OS_Yield(); // Yield the CPU to another process
+    // We should never be rescheduled
     enable_interrupts();
 }
 
-void timer_tick( uint32_t current_tick )
+void timer_preempt( uint32_t current_tick )
 {
     disable_interrupts();
 
-    switch( pcb_pool[ current_process - 1 ].type ) {
+    switch( get_current_process()->type ) {
         case PERIODIC:
         case SPORADIC:
             if( !schedule_next_device() )         // Run colliding device process
@@ -88,13 +123,15 @@ void timer_tick( uint32_t current_tick )
 
 pcb_t* get_current_process()
 {
+    if( current_process == IDLE )
+        return &idle_pcb;
     return &pcb_pool[ current_process - 1 ];
 }
 
 void OS_Yield()
 {
     disable_interrupts();
-    switch( pcb_pool[ current_process - 1 ].type ) {
+    switch( get_current_process()->type ) {
         case PERIODIC:
             yield_periodic();
             schedule_sporadic(); // Rerun last sporadic process
@@ -115,7 +152,7 @@ void OS_Yield()
 
 int OS_GetParam()
 {
-    return pcb_pool[ current_process - 1 ].arg;
+    return get_current_process()->arg;
 }
 
 /* Process Management primitives */
@@ -125,12 +162,13 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     pcb_t* pcb = alloc_pcb();
     if( pcb == NULL )
         return INVALIDPID;
-
-    init_list( &pcb->thread_list );
-
+    
     pcb->type = level;
     pcb->arg = arg;
     pcb->function = f;
+    pcb->interrupt_disables = 1;
+    pcb->stack_size = DEFAULT_STACK_SIZE;
+    process_init_memory( pcb );
 
     bool res;
     switch( level ) {
@@ -151,8 +189,27 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
         return INVALIDPID;
     }
 
-//    init_new_pcb_memory( pcb );
+    pcb->context.cr3 = init_new_process_address_space( pcb->stack_size );
+    // TODO Does this have to be -16?
+    pcb->context.stack = MAX_USER_MEMORY_SIZE - 16;
+
+    fork_process( &pcb->context, &get_current_process()->context, pcb );
 
     enable_interrupts();
+
     return pcb->pid;
+}
+
+void new_proc_entry_point( void* start_param )
+{
+    pcb_t* pcb = (pcb_t*) start_param;
+    current_process = pcb->pid;
+    KERNEL_ASSERT( pcb->interrupt_disables == 1, "Process started with wrong number of interrupts" );
+    // We will have interrupt disabled when we start 
+    disable_interrupts();
+
+    // Child process will be run and terminate
+    pcb->function();
+    OS_Terminate();
+    KERNEL_ASSERT( false, "Terminated process was rescheduled" );
 }

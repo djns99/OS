@@ -10,6 +10,8 @@
 
 void OS_Init()
 {
+    register_entry_proc();
+    
     set_fg_colour( TEXT_GREEN );
     set_bg_colour( TEXT_BLACK );
     clear_screen();
@@ -26,13 +28,26 @@ void OS_Init()
     init_interrupts();
 }
 
+extern void test();
+
 void OS_Start()
 {
     // TODO Launch shell
-
-    // TODO Sleep until shutdown
-    while( true )
-            asm("hlt");
+    // Launch initial process
+    // We are the idle process
+    OS_Create( test, 0, SPORADIC, 0 );
+    
+    // Kick off interrupts now
+    print( "Enabling interrupts\n" );
+    enable_interrupts();
+    
+    // Idle loop
+    while( true ) {
+        // Yield to any new processes
+        OS_Yield();
+        // Wait until an interrupt comes in and then pass control to new process 
+        asm("hlt");
+    }
 }
 
 void OS_Abort()
@@ -42,7 +57,8 @@ void OS_Abort()
     // Disable interrupt and halts
     // Requires hard reboot to recover
     disable_interrupts();
-    asm("hlt");
+    while (true)
+        asm("hlt");
 }
 
 void entry_point()

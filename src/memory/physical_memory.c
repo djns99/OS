@@ -12,13 +12,10 @@ void init_physical_memory()
 {
     print( "%u\n", get_mem_size() );
 
-    KERNEL_ASSERT( root_page_directory != NULL, "Failed to get the initial page directory" );
     KERNEL_ASSERT( get_kernel_start() != 0, "Failed to get the kernel start" );
     KERNEL_ASSERT( get_kernel_end() != 0, "Failed to get the kernel end" );
     KERNEL_ASSERT( get_phys_kernel_start() != 0, "Failed to get the physical kernel start" );
     KERNEL_ASSERT( get_phys_kernel_end() != 0, "Failed to get the physical kernel end" );
-    print( "%p %p %p %p %p\n", root_page_directory, get_kernel_start(), get_kernel_end(), get_phys_kernel_start(),
-           get_phys_kernel_end() );
 
     const uint32_t max_usable_pages = get_mem_size() >> PAGE_SIZE_LOG;
     init_variable_bitmap( free_page_bitmap, max_usable_pages );
@@ -34,8 +31,11 @@ size_t alloc_phys_page()
 {
     disable_interrupts();
     const uint32_t page_id = bitmap_find_first_set( free_page_bitmap );
-    if( page_id == get_bitmap_bits( free_page_bitmap ) )
+    if( page_id == get_bitmap_bits( free_page_bitmap ) ) {
+        enable_interrupts();
         return NULL;
+    }
+    bitmap_clear_bit( free_page_bitmap, page_id );
     enable_interrupts();
     return page_id_to_phys_address( page_id );
 }
@@ -43,9 +43,9 @@ size_t alloc_phys_page()
 void free_phys_page( size_t address )
 {
     KERNEL_ASSERT( address, "Tried to free NULL page" );
-    disable_interrupts();
     const uint32_t page_id = phys_address_to_page_id( address );
-    enable_interrupts();
+    disable_interrupts();
     bitmap_set_bit( free_page_bitmap, page_id );
+    enable_interrupts();
 }
 

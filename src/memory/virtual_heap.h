@@ -28,7 +28,7 @@ typedef struct {
     uint32_t heap_usage;
 } virtual_heap_t;
 
-void init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, page_alloc_func_t page_alloc_func,
+bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, page_alloc_func_t page_alloc_func,
                         page_free_func_t page_free_func, uint32_t alloc_flags );
 void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size );
 

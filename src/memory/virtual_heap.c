@@ -20,6 +20,7 @@ range_list_entry_t* alloc_pool_entry( virtual_heap_t* heap, size_t start, size_t
 {
     KERNEL_ASSERT( start, "Cannot allocate at position 0" );
     KERNEL_ASSERT( len, "Cannot allocate 0 length" );
+    KERNEL_ASSERT( heap->last_pool_alloc_loc, "Did not init last pool alloc location" );
     do {
         // Last one we allocated has been freed again
         if( heap->last_pool_alloc_loc->start == 0 ) {
@@ -101,7 +102,7 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
     }
 }
 
-void init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, page_alloc_func_t page_alloc_func,
+bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, page_alloc_func_t page_alloc_func,
                         page_free_func_t page_free_func, uint32_t alloc_flags )
 {
     KERNEL_ASSERT( ( (size_t) start_addr % PAGE_SIZE ) == 0, "Heap must be 4k aligned" );
@@ -111,6 +112,7 @@ void init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     heap->page_alloc_func = page_alloc_func;
     heap->page_free_func = page_free_func;
     heap->alloc_flags = alloc_flags;
+    
 
     init_list( &heap->free_list );
 
@@ -120,18 +122,28 @@ void init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     const uint32_t pool_num_pages = CEIL_DIV( heap_num_pages, pool_entries_per_page );
 
     // Allocate pool
-    for( uint32_t i = 0; i < pool_num_pages; i++ )
-        heap->page_alloc_func( start_addr + i * PAGE_SIZE, alloc_flags );
+    for( uint32_t i = 0; i < pool_num_pages; i++ ) {
+        if( !heap->page_alloc_func( start_addr + i * PAGE_SIZE, alloc_flags ) ) {
+            // Free any pages we allocated
+            for( uint32_t j = 0; j < i; j++ )
+                heap->page_free_func( start_addr + j * PAGE_SIZE );
 
+            return false;
+        }
+    }
+    
     heap->node_pool = start_addr;
     heap->pool_size = pool_num_pages * PAGE_SIZE;
-    heap->last_pool_alloc_loc = 0;
+    heap->last_pool_alloc_loc = heap->node_pool;
 
     range_list_entry_t* list_node = alloc_pool_entry( heap, (size_t) start_addr + heap->pool_size,
                                                       heap_size - heap->pool_size );
+    KERNEL_ASSERT( list_node, "Failed to allocate list node from new pool" );
+    
     list_insert_head_node( &heap->free_list, &list_node->list_node );
 
     heap->heap_usage = heap->pool_size;
+    return true;
 }
 
 void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )

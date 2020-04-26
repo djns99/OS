@@ -1,5 +1,6 @@
 target remote 127.0.0.1:1234
-layout src
+#layout src
+layout asm
 layout regs
 tui reg all
 file cmake-build-debug/bin/kernel_readable.bin

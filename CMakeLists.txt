@@ -10,11 +10,12 @@ include_directories(src/)
 
 file(GLOB_RECURSE SRC_C_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 file(GLOB_RECURSE SRC_ASM_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.asm")
+file(GLOB_RECURSE PROGRAM_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/programs/*.c")
 
 add_custom_target( linker DEPENDS linker.ld )
 
 # Readable format
-add_executable(kernel_readable.bin kernel_entry.asm ${SRC_ASM_FILES} ${SRC_C_FILES})
+add_executable(kernel_readable.bin kernel_entry.asm ${SRC_ASM_FILES} ${SRC_C_FILES} ${PROGRAM_FILES})
 add_dependencies(kernel_readable.bin linker)
 
 # Binary format for actual image

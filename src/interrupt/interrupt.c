@@ -6,7 +6,7 @@
 
 void init_interrupts()
 {
-    OS_EI();
+    KERNEL_ASSERT( get_current_process()->interrupt_disables == 1, "Idle process incorrectly configured interrupts" );
 }
 
 void enable_interrupts()

@@ -10,7 +10,7 @@
 #define PIC_SLAVE_CONTROL (port_t)0xA0
 #define PIC_SLAVE_DATA (port_t)(PIC_SLAVE_CONTROL + 1)
 
-static void remap_pic()
+static inline void remap_pic()
 {
     const uint8_t old_data_master = port_read8( PIC_MASTER_DATA );
     const uint8_t old_data_slave = port_read8( PIC_SLAVE_DATA );
@@ -31,7 +31,7 @@ static void remap_pic()
     port_write8( PIC_SLAVE_DATA, old_data_slave );
 }
 
-static void send_eoi( uint32_t irq_num )
+static inline void send_eoi( uint32_t irq_num )
 {
     if( irq_num >= 8 )
         port_write8( PIC_SLAVE_CONTROL, 0x20 );

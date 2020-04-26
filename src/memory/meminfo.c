@@ -1,3 +1,4 @@
+#include "utility/math.h"
 #include "utility/debug.h"
 #include "meminfo.h"
 #include "memory.h"
@@ -45,27 +46,36 @@ void init_page_map()
 
     for( uint32_t i = 0; i < memmap_num_entries; i++ ) {
 
-        if( memmap_table[ i ].start > MAX_TOTAL_MEMORY_SIZE )
+        if( memmap_table[ i ].start > MAX_PHYSICAL_MEMORY_SIZE )
             continue;
 
-        print( "| %p - %p ( Length %u Type %u ) |\n", (uint32_t) memmap_table[ i ].start,
-               (uint32_t) memmap_table[ i ].start + (uint32_t) memmap_table[ i ].length - 1,
-               (uint32_t) memmap_table[ i ].length, (uint32_t) memmap_table[ i ].type );
+        print( "| 0x%X - 0x%X ( Length %U Type %u ) |\n", memmap_table[ i ].start,
+               memmap_table[ i ].start + memmap_table[ i ].length - 1,
+               memmap_table[ i ].length, memmap_table[ i ].type );
         if( memmap_table[ i ].type == USABLE_RAM ) {
-            filtered_memmap_table[ num_filtered_entries ].start = (uint32_t) memmap_table[ i ].start;
-            filtered_memmap_table[ num_filtered_entries ].length = (uint32_t) memmap_table[ i ].length;
+            uint32_t start = (uint32_t) memmap_table[ i ].start;
+            uint32_t length = (uint32_t) memmap_table[ i ].length;
 
-            // Cap to 4GiB ram
-            if( memmap_table[ i ].start + memmap_table[ i ].length > MAX_TOTAL_MEMORY_SIZE )
-                filtered_memmap_table[ num_filtered_entries ].length = UINT32_MAX - memmap_table[ i ].start;
+            // Cap to our ram limit
+            if( memmap_table[ i ].start + memmap_table[ i ].length > MAX_PHYSICAL_MEMORY_SIZE )
+                length = MAX_PHYSICAL_MEMORY_SIZE - memmap_table[ i ].start;
 
-            if( filtered_memmap_table[ num_filtered_entries ].start == 0 ) {
+            if( start == 0 ) {
                 // Disallow zero
-                filtered_memmap_table[ num_filtered_entries ].start += PAGE_SIZE;
-                filtered_memmap_table[ num_filtered_entries ].length -= PAGE_SIZE;
+                start += PAGE_SIZE;
+                length -= PAGE_SIZE;
             }
+            
+            // Round to page boundaries
+            const uint32_t rounded_start = CEIL_DIV( start, PAGE_SIZE ) * PAGE_SIZE;
+            length -= rounded_start - start;
+            start = rounded_start;
+            length -= length % PAGE_SIZE;
 
-            usable_ram += filtered_memmap_table[ num_filtered_entries ].length;
+            filtered_memmap_table[ num_filtered_entries ].start = start;
+            filtered_memmap_table[ num_filtered_entries ].length = length;
+            
+            usable_ram += length;
             num_filtered_entries++;
         }
     }

@@ -1,3 +1,4 @@
+#include "processes/process.h"
 #include "timer.h"
 #include "interrupt/interrupt_handlers.h"
 #include "io_ports.h"
@@ -7,6 +8,7 @@ uint64_t tick = 0;
 
 void handler( interrupt_params_t* r )
 {
+    timer_preempt( tick++ );
 }
 
 void init_timer( uint32_t freq )

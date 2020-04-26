@@ -6,9 +6,13 @@
 #define PAGE_MODIFIABLE_FLAG (1u<<1u)
 #define PAGE_USER_ACCESSIBLE_FLAG (1u<<2u)
 
-extern page_directory_t root_page_directory;
-
 void init_virtual_memory();
+
+// Clones the template page table when creating a new process
+// Returns the physical address to load into cr3
+size_t init_new_process_address_space( uint32_t stack_size );
+bool cleanup_process_address_space( size_t phys_page );
+
 void* alloc_any_virtual_page( uint32_t flags );
 bool alloc_page_at_address( void* address, uint32_t flags );
 
