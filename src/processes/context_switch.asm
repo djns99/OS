@@ -1,8 +1,8 @@
 [extern new_proc_entry_point]
+[bits 32]
 %macro backup 0
     push ss
     pushf
-    push cs
     pusha ; Push all GP registers to stack
     mov cx, ds
     push ecx
@@ -30,7 +30,6 @@ context_switch:
     mov fs, ax
     mov gs, ax
     popa ; Pop the registers
-    pop cs
     popf
     pop ss
     leave
@@ -46,13 +45,13 @@ fork_process:
     push ecx
     push edx
     
-    mov eax, [ebp + 8] ; New context in eax
+    mov eax, [ebp + 8] ; Child context in eax
     mov ebx, [ebp + 12] ; Parent context in ebx
     mov edx, [ebp + 16] ; Param for entry point
     
     ; Construct a fake call stack as if parent context switched 
-    push eax ; Parent would have called context_switch( parent, new )
-    push ebx ; So we push ebx second
+    push ebx ; Parent would have called context_switch( child, parent )
+    push eax ; So we push eax second
 
     ; Push our own return address for parent  
     lea ecx, [parent_complete]
@@ -71,8 +70,8 @@ fork_process:
     mov ecx, [eax] ; New cr3 in ecx
     mov cr3, ecx ; Switch address spaces
     mov esp, [eax+4] ; Load new stack pointer
-    push ebx ; Child needs to call context_switch( new, parent )
-    push eax ; So push eax second
+    push eax ; Child needs to call context_switch( parent, child )
+    push ebx ; So push ebx second
     
     ; Context switch back, backing up all the copied state 
     call context_switch
