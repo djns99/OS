@@ -8,5 +8,7 @@ si
 #break *0x10000
 focus cmd
 break entry_point
+break OS_Abort
+break isr_handler
 #break fork_process
 continue

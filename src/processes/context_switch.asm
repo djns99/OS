@@ -1,11 +1,8 @@
 [extern new_proc_entry_point]
 [bits 32]
 %macro backup 0
-    push ss
     pushf
     pusha ; Push all GP registers to stack
-    mov cx, ds
-    push ecx
 %endmacro
 
 ; Performs a context switch
@@ -24,14 +21,8 @@ context_switch:
     mov cr3, ecx ; Safe to overwrite since we are in kernel code with same mapping in both address spaces
     mov esp, [eax+4] ; Load new stack pointer
     ; Pop values pushed
-    pop eax 
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
     popa ; Pop the registers
     popf
-    pop ss
     leave
     ret
 

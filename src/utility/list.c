@@ -72,7 +72,7 @@ void list_insert_head_node( list_head_t* list, list_node_t* node )
 void list_remove_node( list_node_t* node )
 {
     KERNEL_ASSERT( node != NULL, "Tried to access NULL list" );
-    KERNEL_ASSERT( node->next == node, "Cannot remove head node from list" );
+    KERNEL_ASSERT( node->next != node, "Cannot remove head node from list" );
 
     node->prev->next = node->next;
     node->next->prev = node->prev;

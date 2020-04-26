@@ -37,21 +37,24 @@ void update_cursor()
     port_write16( 0x3D4, ( pos & 0xFF00u ) | 0x0E );
 }
 
-void clear_row( uint32_t row_to_clear )
+void clear_range( uint32_t start, uint32_t num_chars )
 {
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( video_memory + row_to_clear * TEXT_MODE_WIDTH, *(uint16_t*) &entry, TEXT_MODE_WIDTH );
+    os_memset16( video_memory + start, *(uint16_t*) &entry, num_chars );
 }
 
 void scroll()
 {
-    while( row-- >= TEXT_MODE_HEIGHT ) {
-        os_memcpy( video_memory, video_memory + TEXT_MODE_WIDTH,
-                   TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - 1 ) * sizeof( video_mem_entry_t ) );
-        clear_row( TEXT_MODE_HEIGHT - 1 );
-    }
+    if( row < TEXT_MODE_HEIGHT )
+        return;
+    const uint32_t memcpy_lines = (row - TEXT_MODE_HEIGHT) + 1;
+    os_memcpy( video_memory, video_memory + TEXT_MODE_WIDTH * memcpy_lines,
+               TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ) * sizeof( video_mem_entry_t ) );
+    clear_range( TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ), memcpy_lines * TEXT_MODE_WIDTH );
+    row = TEXT_MODE_HEIGHT - 1;
+    col = 0;
 }
 
 void wrap_cursor()

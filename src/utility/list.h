@@ -46,6 +46,6 @@ void list_advance_head( list_head_t* list );
 #define LIST_GET_FIRST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, (HEAD)->head.next ) )
 #define LIST_GET_LAST( TYPE, MEMBER, HEAD ) ( list_is_empty( HEAD ) ? NULL : CONTAINER_OF( TYPE, MEMBER, (HEAD)->head.prev ) )
 
-#define LIST_FOREACH( TYPE, MEMBER, LOOP_VAR, HEAD ) for( TYPE* LOOP_VAR = LIST_GET_FIRST( TYPE, MEMBER, HEAD ); &(LOOP_VAR->MEMBER) != &((HEAD)->head); LOOP_VAR = LIST_GET_NEXT( TYPE, MEMBER, LOOP_VAR ) )
+#define LIST_FOREACH( TYPE, MEMBER, LOOP_VAR, HEAD ) for( TYPE* LOOP_VAR = LIST_GET_FIRST( TYPE, MEMBER, HEAD ); LOOP_VAR && &(LOOP_VAR->MEMBER) != &((HEAD)->head); LOOP_VAR = LIST_GET_NEXT( TYPE, MEMBER, LOOP_VAR ) )
 
 #endif //OS_LIST_H

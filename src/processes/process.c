@@ -32,6 +32,8 @@ void init_processes()
     init_device_state();
     init_sporadic_state();
     init_periodic_state();
+    
+    init_list( &stopped_processes );
 
     // init_periodic_ordering(); // TODO init idle process
 }
@@ -73,8 +75,10 @@ void sched_common( pcb_t* new_proc )
 {
     disable_interrupts();
     if( new_proc != get_current_process() ) {
-        context_switch( &new_proc->context, &get_current_process()->context );
+        // Set this before the context switch since it is on the stack
+        pcb_t* old_proc = get_current_process();
         current_process = new_proc->pid;
+        context_switch( &new_proc->context, &old_proc->context );
     }
     // Clean up terminated process
     cleanup_terminated();
@@ -206,7 +210,7 @@ void new_proc_entry_point( void* start_param )
     current_process = pcb->pid;
     KERNEL_ASSERT( pcb->interrupt_disables == 1, "Process started with wrong number of interrupts" );
     // We will have interrupt disabled when we start 
-    disable_interrupts();
+    enable_interrupts();
 
     // Child process will be run and terminate
     pcb->function();
