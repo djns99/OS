@@ -32,8 +32,8 @@ list_node_t* list_get_prev_node( list_node_t* curr )
 void list_insert_after_node( list_node_t* node, list_node_t* to_insert )
 {
     KERNEL_ASSERT( node != NULL, "Tried to access NULL list" );
-    KERNEL_ASSERT( to_insert != NULL, "Tried to access NULL list" );
-
+    KERNEL_ASSERT( to_insert != NULL, "Tried to insert NULL" );
+    
     to_insert->next = node->next;
     to_insert->prev = node;
     to_insert->next->prev = to_insert;
