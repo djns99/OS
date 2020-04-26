@@ -1,5 +1,5 @@
-#ifndef OS_HELPERS_H
-#define OS_HELPERS_H
+#ifndef OS_MATH_H
+#define OS_MATH_H
 #include "kernel.h"
 #include "types.h"
 
@@ -35,4 +35,4 @@ static inline uint8_t os_log2_up( uint32_t val )
 
 #define CEIL_DIV( a, b ) ( ( a + b - 1 ) / b )
 
-#endif //OS_HELPERS_H
+#endif //OS_MATH_H

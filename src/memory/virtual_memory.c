@@ -1,4 +1,4 @@
-#include "utility/helpers.h"
+#include "utility/math.h"
 #include "utility/debug.h"
 #include "virtual_memory.h"
 #include "memory.h"
@@ -62,11 +62,12 @@ void update_page_table( size_t virt_address, size_t phys_address, uint32_t flags
     os_memset8( (void*) virt_address, 0x0, PAGE_SIZE );
 }
 
-void wipe_page_table_entry( size_t virt_address ) {
+void wipe_page_table_entry( size_t virt_address )
+{
     KERNEL_ASSERT( ( virt_address % PAGE_SIZE ) == 0, "Virtual address is not aligned to a page" );
     const size_t directory_entry = address_to_directory_entry( virt_address );
     const size_t table_entry = address_to_table_entry( virt_address );
-    
+
     KERNEL_ASSERT( page_directory_entry_is_valid( directory_entry ), "Freed unallocated page" );
     KERNEL_ASSERT( page_tables[ directory_entry ][ table_entry ], "Freed unallocated page" );
 
@@ -166,8 +167,9 @@ bool kalloc_page_at_address( void* virt_address_ptr, uint32_t flags )
 {
     size_t virt_address = (size_t) virt_address_ptr;
     KERNEL_ASSERT( virt_address >= KERNEL_VIRTUAL_BASE, "Tried to allocate kernel page outside kernel heap" );
-    KERNEL_ASSERT( virt_address_ptr < get_kernel_start() || virt_address_ptr >= get_kernel_end(), "Tried to allocate over kernel code" );
-    
+    KERNEL_ASSERT( virt_address_ptr < get_kernel_start() || virt_address_ptr >= get_kernel_end(),
+                   "Tried to allocate over kernel code" );
+
     KERNEL_ASSERT( page_directory_entry_is_valid( address_to_directory_entry( (size_t) virt_address ) ),
                    "Kernel heap should prealloc all entries" );
 
@@ -181,14 +183,14 @@ bool kalloc_page_at_address( void* virt_address_ptr, uint32_t flags )
 
 void free_page( void* page )
 {
-    KERNEL_ASSERT( (size_t)page < KERNEL_VIRTUAL_BASE, "Tried to free kernel page" );
-    wipe_page_table_entry( (size_t)page );
+    KERNEL_ASSERT( (size_t) page < KERNEL_VIRTUAL_BASE, "Tried to free kernel page" );
+    wipe_page_table_entry( (size_t) page );
 }
 
 void kfree_page( void* page )
 {
-    KERNEL_ASSERT( (size_t)page >= KERNEL_VIRTUAL_BASE, "Page is not in kernel heap" );
-    wipe_page_table_entry( (size_t)page );
+    KERNEL_ASSERT( (size_t) page >= KERNEL_VIRTUAL_BASE, "Page is not in kernel heap" );
+    wipe_page_table_entry( (size_t) page );
 }
 
 void clone_root_page_directory( page_directory_ref_t page_directory )
@@ -212,10 +214,10 @@ void init_virtual_memory()
 
 void* kernel_heap_start()
 {
-    return (void*)(CEIL_DIV( ((size_t)get_kernel_end()), PAGE_SIZE ) * PAGE_SIZE);
+    return (void*) ( CEIL_DIV( ( (size_t) get_kernel_end() ), PAGE_SIZE ) * PAGE_SIZE );
 }
 
 void* kernel_heap_end()
 {
-    return (void*)(CEIL_DIV( MAX_TOTAL_MEMORY_SIZE, PAGE_SIZE ) * PAGE_SIZE);
+    return (void*) ( CEIL_DIV( MAX_TOTAL_MEMORY_SIZE, PAGE_SIZE ) * PAGE_SIZE );
 }

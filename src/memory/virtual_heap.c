@@ -1,4 +1,4 @@
-#include "utility/helpers.h"
+#include "utility/math.h"
 #include "utility/debug.h"
 #include "virtual_heap.h"
 #include "memory.h"
@@ -66,7 +66,7 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
         next = LIST_GET_FIRST( range_list_entry_t, list_node, &heap->free_list );
     else
         next = LIST_GET_NEXT( range_list_entry_t, list_node, prev );
-    
+
     if( prev && prev->start + prev->len > addr ) {
         // Already in free list
         return heap_free_fatal;
@@ -75,7 +75,7 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
         prev->len += addr;
 
         // Check if we can merge with next
-        
+
         if( next && next->start == addr + size ) {
             prev->len += next->len;
             list_remove_node( &next->list_node );
@@ -148,17 +148,15 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
 
     // First fit algorithm
     LIST_FOREACH( range_list_entry_t, list_node, curr, &heap->free_list ) {
-        if( curr->len >= real_size )
-        {
+        if( curr->len >= real_size ) {
             curr->start += real_size;
             curr->len -= real_size;
-            if( curr->len == 0 )
-            {
+            if( curr->len == 0 ) {
                 list_remove_node( &curr->list_node );
                 free_pool_entry( curr );
             }
 
-            uint16_t* actual_addr = (uint16_t *)(curr->start - real_size);
+            uint16_t* actual_addr = (uint16_t*) ( curr->start - real_size );
             *actual_addr = size_log;
             return actual_addr + 1;
         }

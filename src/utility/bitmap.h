@@ -1,6 +1,6 @@
 #ifndef OS_BITMAP_H
 #define OS_BITMAP_H
-#include "helpers.h"
+#include "math.h"
 
 #define DECLARE_BITMAP( name, bits ) DECLARE_VARIABLE_BITMAP( name, bits ) = { bits }
 #define DECLARE_VARIABLE_BITMAP( name, max_bits ) uint32_t name[ CEIL_DIV( max_bits, 32 ) + 1 ]

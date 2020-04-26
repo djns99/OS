@@ -3,7 +3,7 @@
 #include "kernel.h"
 #include "utility/string.h"
 #include "utility/debug.h"
-#include "utility/helpers.h"
+#include "utility/math.h"
 #include "meminfo.h"
 #include "virtual_memory.h"
 #include "physical_memory.h"
@@ -31,7 +31,7 @@ MEMORY OS_Malloc( int val )
     void* address = virtual_heap_alloc( &current_proc->heap, val );
 
     // +2 'cause spec
-    return (MEMORY)address;
+    return (MEMORY) address;
 }
 
 BOOL OS_Free( MEMORY m )
