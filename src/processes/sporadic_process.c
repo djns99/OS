@@ -2,7 +2,7 @@
 #include "interrupt/interrupt.h"
 #include "sporadic_process.h"
 
-list_node_head_t sporadic_scheduling_list;
+list_head_t sporadic_scheduling_list;
 
 void init_sporadic_state()
 {

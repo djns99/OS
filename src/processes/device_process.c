@@ -1,7 +1,7 @@
 #include "utility/debug.h"
 #include "device_process.h"
 
-list_node_head_t device_scheduling_list;
+list_head_t device_scheduling_list;
 
 void free_device( pcb_t* pcb )
 {

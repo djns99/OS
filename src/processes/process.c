@@ -6,7 +6,7 @@
 #include "utility/types.h"
 #include "process_internal.h"
 
-list_node_head_t stopped_processes;
+list_head_t stopped_processes;
 
 void init_processes()
 {

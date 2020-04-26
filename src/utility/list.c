@@ -1,7 +1,7 @@
 #include "list.h"
 #include "utility/debug.h"
 
-void init_list( list_node_head_t* list )
+void init_list( list_head_t* list )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
 
@@ -9,7 +9,7 @@ void init_list( list_node_head_t* list )
     list->head.prev = &list->head;
 }
 
-bool list_is_empty( list_node_head_t* list )
+bool list_is_empty( list_head_t* list )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
 
@@ -51,7 +51,7 @@ void list_insert_before_node( list_node_t* node, list_node_t* to_insert )
     to_insert->prev->next = to_insert;
 }
 
-void list_insert_tail_node( list_node_head_t* list, list_node_t* node )
+void list_insert_tail_node( list_head_t* list, list_node_t* node )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
     KERNEL_ASSERT( node != NULL, "Tried to access NULL list" );
@@ -60,7 +60,7 @@ void list_insert_tail_node( list_node_head_t* list, list_node_t* node )
     list_insert_before_node( &list->head, node );
 }
 
-void list_insert_head_node( list_node_head_t* list, list_node_t* node )
+void list_insert_head_node( list_head_t* list, list_node_t* node )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
     KERNEL_ASSERT( node != NULL, "Tried to access NULL list" );
@@ -78,7 +78,7 @@ void list_remove_node( list_node_t* node )
     node->next->prev = node->prev;
 }
 
-list_node_t* list_pop_head( list_node_head_t* list )
+list_node_t* list_pop_head( list_head_t* list )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
 
@@ -90,7 +90,7 @@ list_node_t* list_pop_head( list_node_head_t* list )
     return head;
 }
 
-list_node_t* list_pop_tail( list_node_head_t* list )
+list_node_t* list_pop_tail( list_head_t* list )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
 
@@ -113,7 +113,7 @@ void list_replace_node( list_node_t* old, list_node_t* new )
     new->prev = old->prev;
 }
 
-void list_advance_head( list_node_head_t* list )
+void list_advance_head( list_head_t* list )
 {
     KERNEL_ASSERT( list != NULL, "Tried to access NULL list" );
 

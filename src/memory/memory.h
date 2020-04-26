@@ -3,6 +3,7 @@
 
 #include "utility/types.h"
 #include "utility/list.h"
+#include "processes/process.h"
 
 #define PAGE_SIZE_LOG 12u
 #define PAGE_SIZE (1u<<PAGE_SIZE_LOG)
@@ -30,11 +31,13 @@ typedef page_table_ref_t* page_directory_ref_t;
 
 typedef struct {
     page_directory_ref_t page_directory;
-    list_node_head_t alloc_list[30];
-    list_node_head_t free_list;
+    list_head_t alloc_list[30];
+    list_head_t free_list;
 } process_memory_state_t;
 
 void* kmalloc( uint32_t bytes );
 void kfree( void* );
+
+void process_init_memory( pcb_t* );
 
 #endif //OS_MEMORY_H

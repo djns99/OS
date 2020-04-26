@@ -61,7 +61,7 @@ uint32_t bitmap_count_set( bitmap_t bmp )
 {
     uint32_t count = 0;
     FOREACH_WORD( bmp, word ) {
-        count += __builtin_popcount( *word );
+        count += os_count_bits_set( *word );
     }
     return count;
 }

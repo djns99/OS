@@ -1,5 +1,6 @@
 #ifndef OS_PROCESS_H
 #define OS_PROCESS_H
+#include "memory/virtual_heap.h"
 #include "kernel.h"
 #include "utility/list.h"
 #include "utility/types.h"
@@ -25,9 +26,10 @@ typedef struct {
 
 typedef struct {
     pid_t pid;
-    list_node_head_t thread_list;
+    list_head_t thread_list;
     list_node_t scheduling_list;
     proc_context_t context;
+    virtual_heap_t heap;
     uint32_t interrupt_disables;
 
     int arg;

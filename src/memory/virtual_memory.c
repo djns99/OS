@@ -62,6 +62,19 @@ void update_page_table( size_t virt_address, size_t phys_address, uint32_t flags
     os_memset8( (void*) virt_address, 0x0, PAGE_SIZE );
 }
 
+void wipe_page_table_entry( size_t virt_address ) {
+    KERNEL_ASSERT( ( virt_address % PAGE_SIZE ) == 0, "Virtual address is not aligned to a page" );
+    const size_t directory_entry = address_to_directory_entry( virt_address );
+    const size_t table_entry = address_to_table_entry( virt_address );
+    
+    KERNEL_ASSERT( page_directory_entry_is_valid( directory_entry ), "Freed unallocated page" );
+    KERNEL_ASSERT( page_tables[ directory_entry ][ table_entry ], "Freed unallocated page" );
+
+    // TODO Free directory entry if needed
+    page_tables[ directory_entry ][ table_entry ] = 0x0;
+    reload_page_table();
+}
+
 bool alloc_directory_entry( uint32_t directory_entry, uint32_t flags )
 {
     KERNEL_ASSERT( !curr_page_directory[ directory_entry ], "Tried to overwrite non-NULL page directory entry" );
@@ -164,6 +177,18 @@ bool kalloc_page_at_address( void* virt_address_ptr, uint32_t flags )
 
     update_page_table( (size_t) virt_address, phys_address, flags );
     return true;
+}
+
+void free_page( void* page )
+{
+    KERNEL_ASSERT( (size_t)page < KERNEL_VIRTUAL_BASE, "Tried to free kernel page" );
+    wipe_page_table_entry( (size_t)page );
+}
+
+void kfree_page( void* page )
+{
+    KERNEL_ASSERT( (size_t)page >= KERNEL_VIRTUAL_BASE, "Page is not in kernel heap" );
+    wipe_page_table_entry( (size_t)page );
 }
 
 void clone_root_page_directory( page_directory_ref_t page_directory )

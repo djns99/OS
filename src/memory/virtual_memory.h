@@ -16,5 +16,8 @@ void* kernel_heap_start();
 void* kernel_heap_end();
 bool kalloc_page_at_address( void* address, uint32_t flags );
 
+void free_page( void* page );
+void kfree_page( void* page );
+
 
 #endif //OS_VIRTUAL_MEMORY_H
