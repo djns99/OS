@@ -97,7 +97,7 @@ uint32_t phys_address_to_page_id( size_t address )
     uint32_t accumulated_offset = 0;
     for( uint32_t i = 0; i < num_filtered_entries; i++ ) {
         if( address_is_in_range( filtered_memmap_table[ i ], address ) )
-            return accumulated_offset + ( address - filtered_memmap_table[ i ].start );
+            return ( accumulated_offset + ( address - filtered_memmap_table[ i ].start ) ) >> PAGE_SIZE_LOG;
 
         accumulated_offset += filtered_memmap_table[ i ].length;
     }
