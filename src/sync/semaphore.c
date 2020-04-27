@@ -6,7 +6,7 @@
 #include "kernel.h"
 
 typedef struct {
-    uint32_t val;
+    int32_t val;
     list_head_t blocked_list;
 } semaphore_t;
 

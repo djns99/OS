@@ -24,10 +24,12 @@ void schedule_sporadic()
             break;
     } 
 
+    KERNEL_ASSERT( !new_proc || new_proc->state != STOPPED, "Stopped process was still in scheduling list" );
+    
     if( !new_proc || new_proc->state == BLOCKED )
         sched_common( &idle_pcb );
-    
-    sched_common( new_proc );
+    else
+        sched_common( new_proc );
 }
 
 void free_sporadic( pcb_t* pcb )
