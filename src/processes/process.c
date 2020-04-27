@@ -1,7 +1,7 @@
 #include "memory/virtual_memory.h"
 #include "interrupt/interrupt.h"
 #include "utility/debug.h"
-#include "utility/string.h"
+#include "utility/memops.h"
 #include "process.h"
 #include "kernel.h"
 #include "utility/types.h"

@@ -1,7 +1,7 @@
 #include "processes/process.h"
 #include "memory.h"
 #include "kernel.h"
-#include "utility/string.h"
+#include "utility/memops.h"
 #include "utility/debug.h"
 #include "utility/math.h"
 #include "meminfo.h"

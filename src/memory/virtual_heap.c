@@ -127,8 +127,8 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
 bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, page_alloc_func_t page_alloc_func,
                         page_free_func_t page_free_func, uint32_t alloc_flags )
 {
-    KERNEL_ASSERT( ( (size_t) start_addr % PAGE_SIZE ) == 0, "Heap must be 4k aligned" );
-    KERNEL_ASSERT( ( (size_t) end_addr % PAGE_SIZE ) == 0, "Heap must be 4k aligned" );
+    KERNEL_ASSERT( ( (size_t) start_addr % PAGE_SIZE ) == 0, "Heap must be page aligned" );
+    KERNEL_ASSERT( ( (size_t) end_addr % PAGE_SIZE ) == 0, "Heap must be page aligned" );
     heap->start_addr = start_addr;
     heap->end_addr = end_addr;
     heap->page_alloc_func = page_alloc_func;
@@ -182,15 +182,25 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
     // First fit algorithm
     LIST_FOREACH( range_list_entry_t, list_node, curr, &heap->free_list ) {
         if( curr->len >= real_size ) {
+            const uint32_t start_page = CEIL_DIV( curr->start, PAGE_SIZE );
+            const uint32_t end_page = ( curr->start + real_size ) / PAGE_SIZE;
+            
+            // Allocate any new pages needed
+            for( uint32_t i = start_page; i < end_page; i++ )
+                heap->page_alloc_func( (void*)(i * PAGE_SIZE), heap->alloc_flags );
+            
+            uint16_t* actual_addr = (uint16_t*)curr->start;
+            *actual_addr = size_log;
+
+            // Remove the allocated range from entry
             curr->start += real_size;
             curr->len -= real_size;
             if( curr->len == 0 ) {
                 list_remove_node( &curr->list_node );
                 free_pool_entry( curr );
             }
-
-            uint16_t* actual_addr = (uint16_t*) ( curr->start - real_size );
-            *actual_addr = size_log;
+            
+            // Add 1 to address to skip size stored in first word
             return actual_addr + 1;
         }
     }

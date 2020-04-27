@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include "types.h"
 #include "print.h"
-#include "string.h"
+#include "memops.h"
 #include "peripherals/io_ports.h"
 #include "utility/debug.h"
 

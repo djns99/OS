@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "meminfo.h"
 #include "physical_memory.h"
-#include "utility/string.h"
+#include "utility/memops.h"
 
 uint32_t kernel_page_dirs = 0;
 // Final 4 MiB maps page directory

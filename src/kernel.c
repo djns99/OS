@@ -1,3 +1,4 @@
+#include "sync/fifo.h"
 #include "processes/syscall.h"
 #include "interrupt/interrupt_handlers.h"
 #include "interrupt/interrupt.h"
@@ -21,6 +22,7 @@ void OS_Init()
     init_keyboard();
     OS_InitMemory();
 
+    init_fifos();
     init_processes();
     init_syscall();
 //    syscall( NUM_SYSCALLS );

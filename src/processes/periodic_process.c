@@ -1,4 +1,5 @@
-#include "utility/string.h"
+#include "utility/memops.h"
+#include "utility/memops.h"
 #include "utility/debug.h"
 #include "periodic_process.h"
 

@@ -1,6 +1,6 @@
 #include "processes/process.h"
 #include "utility/debug.h"
-#include "utility/string.h"
+#include "utility/memops.h"
 #include "utility/print.h"
 #include "utility/types.h"
 #include "interrupt_handlers.h"
