@@ -14,7 +14,14 @@ static test_t test_suite[] = {
 
         // Semaphore tests
         { .name = "Mutual Exclusion Semaphore Tests", .function = test_semaphore_mutex },
-        { .name = "N-Way Exclusion Semaphore Tests", .function = test_semaphore_n_blocked }, };
+        { .name = "N-Way Exclusion Semaphore Tests", .function = test_semaphore_n_blocked },
+
+        // FIFO
+        { .name = "SPSC FIFO Tests", .function = test_spsc_fifo },
+        { .name = "MPSC FIFO Tests", .function = test_mpsc_fifo },
+
+        // End
+};
 
 // Programs can use globals to communicate since they compiled with the kernel
 // Which means they share the kernel address space

@@ -13,7 +13,7 @@
 #define MAXPROCESS         16     /* max. # of processes supported */
 #define MAXFIFO            16     /* max. # of FIFOs supported */
 #define MAXSEM             16     /* max. # of semaphores */
-#define FIFOSIZE           8      /* max. # of data elements per FIFO */
+#define FIFOSIZE           16      /* max. # of data elements per FIFO */
 #define WORKSPACE          512    /* workspace of each process in bytes */
 
 /* invalid constants */

@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "utility/types.h"
 
+#define MAX_TEST_PROCESSES 10
 #define TEST_RUNNER_SEMAPHORE (MAXSEM - 1)
 
 typedef struct {
@@ -19,5 +20,8 @@ bool test_malloc_fill();
 
 bool test_semaphore_mutex();
 bool test_semaphore_n_blocked();
+
+bool test_spsc_fifo();
+bool test_mpsc_fifo();
 
 #endif //OS_TEST_SUITE_H

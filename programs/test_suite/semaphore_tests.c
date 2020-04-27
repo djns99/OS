@@ -1,7 +1,6 @@
 #include "test_helper.h"
 #include "test_suite.h"
 
-#define MAX_TEST_PROCESSES (MAXSEM - 2)
 #define HOST_NOTIFY_SEM (MAXSEM - 1)
 bool awake[MAX_TEST_PROCESSES];
 
@@ -48,7 +47,7 @@ bool test_semaphore_mutex()
 
 bool test_semaphore_n_blocked()
 {
-    const uint32_t num_processes = 10;
+    const uint32_t num_processes = MAX_TEST_PROCESSES;
     OS_InitSem( 0, num_processes / 2 );
     OS_InitSem( HOST_NOTIFY_SEM, -( num_processes / 2 ) + 1 );
 
@@ -60,7 +59,7 @@ bool test_semaphore_n_blocked()
     // Wait for all the processes to signal us
     OS_Wait( HOST_NOTIFY_SEM );
 
-    // Yield again to see if they will grab the semaphore
+    // Yield again to see if any remaining will grab the semaphore
     OS_Yield();
 
     for( uint32_t j = 0; j < num_processes / 2; j++ ) {
@@ -72,7 +71,7 @@ bool test_semaphore_n_blocked()
         ASSERT_EQ( num_awake, num_processes / 2 + j );
 
         if( num_awake < num_processes ) {
-            // Signal the second process
+            // Signal the next process
             OS_Signal( 0 );
 
             // Wait for it to complete
