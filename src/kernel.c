@@ -1,3 +1,4 @@
+#include "sync/semaphore.h"
 #include "sync/fifo.h"
 #include "processes/syscall.h"
 #include "interrupt/interrupt_handlers.h"
@@ -22,6 +23,7 @@ void OS_Init()
     OS_InitMemory();
 
     init_fifos();
+    init_semaphores();
     init_processes();
     init_syscall();
 //    syscall( NUM_SYSCALLS );

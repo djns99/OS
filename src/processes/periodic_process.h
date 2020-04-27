@@ -9,4 +9,6 @@ bool continue_periodic();
 bool schedule_next_periodic();
 void free_periodic( pcb_t* );
 
+bool periodic_is_ready( pcb_t* );
+
 #endif //OS_PERIODIC_PROCESS_H

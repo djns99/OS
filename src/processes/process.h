@@ -15,15 +15,17 @@ typedef void (* process_function_t)( void );
 
 typedef enum {
     BLOCKED, READY, EXECUTING, STOPPED
-} sporadic_execution_state_t;
+} execution_state_t;
 
 typedef struct {
     pid_t pid;
     list_node_t scheduling_list;
+    list_node_t blocked_list;
     proc_context_t context;
     virtual_heap_t heap;
     uint32_t stack_size;
     uint32_t interrupt_disables;
+    execution_state_t state;
 
     int arg;
     process_function_t function;
@@ -37,7 +39,7 @@ typedef struct {
 
         struct {
             // Sporadic process info
-            sporadic_execution_state_t state;
+
         };
 
         struct {
@@ -53,5 +55,11 @@ pcb_t* get_current_process();
 void timer_preempt( uint64_t current_tick );
 void init_processes();
 void register_entry_proc();
+
+// Chooses the highest priority process from the list and schedules it
+void schedule_blocked( list_head_t* blocked_list );
+
+// Blocks the specified process on the provided list
+void block_process( list_head_t* blocked_list, pcb_t* pcb );
 
 #endif //OS_PROCESS_H

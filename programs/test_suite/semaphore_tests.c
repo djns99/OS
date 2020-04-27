@@ -1,7 +1,7 @@
 #include "test_helper.h"
 #include "test_suite.h"
 
-#define HOST_NOTIFY_SEM (MAXSEM - 1)
+#define HOST_NOTIFY_SEM (MAXSEM - 2)
 bool awake[MAX_TEST_PROCESSES];
 
 void sleep_func()

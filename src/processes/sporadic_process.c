@@ -13,27 +13,33 @@ void schedule_sporadic()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule sporadic" );
 
-    if( list_is_empty( &sporadic_scheduling_list ) ) {
-        // We have no work to do, schedule the idle process until the next process
-        sched_common( &idle_pcb );
-        return;
-    }
-
     pcb_t* new_proc = LIST_GET_FIRST( pcb_t, scheduling_list, &sporadic_scheduling_list );
+    pcb_t* const original_head = new_proc;
+    while ( new_proc && new_proc->state == BLOCKED ) {
+        // Still blocked advance the head
+        list_advance_head( &sporadic_scheduling_list );
+        new_proc = LIST_GET_FIRST( pcb_t, scheduling_list, &sporadic_scheduling_list );
+        // All are blocked
+        if( new_proc == original_head )
+            break;
+    } 
+
+    if( !new_proc || new_proc->state == BLOCKED )
+        sched_common( &idle_pcb );
+    
     sched_common( new_proc );
 }
 
 void free_sporadic( pcb_t* pcb )
 {
     KERNEL_ASSERT( pcb->type == SPORADIC, "Freed non sporadic process in free_sporadic()" );
-    if( pcb->state != BLOCKED )
-        list_remove_node( &pcb->scheduling_list ); // Remove from sporadic scheduling list
+    // Remove from sporadic scheduling list
+    list_remove_node( &pcb->scheduling_list );
     free_common( pcb );
 }
 
 bool init_sporadic( pcb_t* pcb, uint32_t n )
 {
-    pcb->state = READY;
     list_insert_tail_node( &sporadic_scheduling_list, &pcb->scheduling_list );
     return true;
 }

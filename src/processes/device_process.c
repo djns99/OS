@@ -42,7 +42,9 @@ void init_device_state()
 void yield_device()
 {
     pcb_t* device = get_current_process();
-    if( device->state == STOPPED )
+    // If we are stopped we dont want to reinsert
+    // If we are blocked we want the CPU back ASAP
+    if( device->state == STOPPED || device->state == BLOCKED )
         return;
     device->next_wake_up = current_time_slice + device->timeout;
     list_remove_node( &device->scheduling_list );
@@ -52,10 +54,17 @@ void yield_device()
 bool schedule_next_device()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule device" );
-
-    pcb_t* head = LIST_GET_FIRST( pcb_t, scheduling_list, &device_scheduling_list );
-    if( !head || head->next_wake_up > current_time_slice )
-        return false;
-    sched_common( head );
-    return true;
+    
+    LIST_FOREACH( pcb_t, scheduling_list, curr, &device_scheduling_list ) {
+        // All the ones after this are still sleeping
+        if( curr->next_wake_up > current_time_slice )
+            return false;
+        if( curr->state != BLOCKED )
+            continue;
+        sched_common( curr );
+        return true;
+    }
+    
+    // All are blocked
+    return false;
 }
