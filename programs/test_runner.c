@@ -19,6 +19,7 @@ static test_t test_suite[] = {
         // FIFO
         { .name = "SPSC FIFO Tests", .function = test_spsc_fifo },
         { .name = "MPSC FIFO Tests", .function = test_mpsc_fifo },
+        { .name = "MPMC FIFO Tests", .function = test_mpmc_fifo },
 
         // End
 };

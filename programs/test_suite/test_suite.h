@@ -23,5 +23,6 @@ bool test_semaphore_n_blocked();
 
 bool test_spsc_fifo();
 bool test_mpsc_fifo();
+bool test_mpmc_fifo();
 
 #endif //OS_TEST_SUITE_H
