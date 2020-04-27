@@ -13,11 +13,12 @@ void OS_Wait( int s )
 {
     disable_interrupts();
 
-    semaphore_pool[ s ]--;
     // TODO Actual queue here
     // Yield is also not correct behaviour
-    while( semaphore_pool[ s ] < 0 )
+    while( semaphore_pool[ s ] <= 0 )
         OS_Yield();
+
+    semaphore_pool[ s ]--;
 
     enable_interrupts();
 }

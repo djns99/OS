@@ -195,11 +195,10 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
 
             // Allocate any new pages needed
             for( uint32_t i = start_page; i < alloc_end_page && i < end_page; i++ ) {
-                if( !heap->page_alloc_func( (void*) ( i * PAGE_SIZE ), heap->alloc_flags ) )
-                {
+                if( !heap->page_alloc_func( (void*) ( i * PAGE_SIZE ), heap->alloc_flags ) ) {
                     // Free any pages we allocated
                     for( uint32_t j = start_page; j < i; j++ )
-                        heap->page_free_func( (void*)( j * PAGE_SIZE ) );
+                        heap->page_free_func( (void*) ( j * PAGE_SIZE ) );
 
                     goto fail;
                 }
@@ -221,7 +220,7 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
         }
     }
 
-fail:
+    fail:
     heap->heap_usage -= real_size;
     return NULL;
 }

@@ -8,7 +8,8 @@ void os_memcpy( void* dest, const void* src, size_t len )
         *( dest8++ ) = *( src8++ );
 }
 
-bool os_memcmp( const void* buf1, const void* buf2, size_t len ) {
+bool os_memcmp( const void* buf1, const void* buf2, size_t len )
+{
     uint32_t* buf1_32 = (uint32_t*) buf1;
     uint32_t* buf2_32 = (uint32_t*) buf2;
     uint32_t i;
@@ -18,10 +19,10 @@ bool os_memcmp( const void* buf1, const void* buf2, size_t len ) {
 
     uint8_t* buf1_8 = (uint8_t*) buf1;
     uint8_t* buf2_8 = (uint8_t*) buf2;
-    for( i *= 4; i < len; i++)
+    for( i *= 4; i < len; i++ )
         if( buf1_8[ i ] != buf2_8[ i ] )
             return false;
-    
+
     return true;
 }
 
@@ -30,21 +31,21 @@ void os_memset8( void* dest, uint8_t val, size_t len )
     uint32_t value = val;
     value |= value << 8;
     value |= value << 16;
-    os_memset32( dest, value, (len - len % 4) / 4 );
+    os_memset32( dest, value, ( len - len % 4 ) / 4 );
 
     uint8_t* dest8 = (uint8_t*) dest;
     for( uint32_t i = len - len % 4; i < len; i++ )
-        dest8[i] = val;
+        dest8[ i ] = val;
 }
 
 void os_memset16( void* dest, uint16_t val, size_t len )
 {
     uint32_t value = val;
     value |= value << 16;
-    os_memset32( dest, value, (len - len % 2) / 2 );
+    os_memset32( dest, value, ( len - len % 2 ) / 2 );
     uint16_t* dest16 = (uint16_t*) dest;
     for( uint32_t i = len - len % 2; i < len; i++ )
-        dest16[i] = val;
+        dest16[ i ] = val;
 }
 
 void os_memset32( void* dest, uint32_t val, size_t len )

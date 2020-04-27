@@ -123,7 +123,7 @@ void OS_Terminate()
     free_process( pcb );
 
     OS_Yield(); // Yield the CPU to another process
-                // We should never be rescheduled
+    // We should never be rescheduled
     KERNEL_ASSERT( false, "Should never reschedule terminated process" );
     enable_interrupts();
 }
@@ -227,7 +227,7 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
 
     // TODO Does this have to be -16?
     pcb->context.stack = MAX_USER_MEMORY_SIZE - 16;
-    
+
     fork_process( &pcb->context, &get_current_process()->context, pcb );
 
     enable_interrupts();
