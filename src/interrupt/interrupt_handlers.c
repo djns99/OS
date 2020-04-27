@@ -142,7 +142,7 @@ void isr_handler( interrupt_params_t r )
 
     if( r.int_no == 14 ) {
         // Page fault
-        print( "Segmentation Fault for process %u\nTerminating\n", get_current_process()->pid );
+        print( "Segmentation Fault for process %u at %p\nTerminating\n", get_current_process()->pid, r.eip );
         OS_Terminate();
         KERNEL_ASSERT( false, "Terminate returned\n" );
     }

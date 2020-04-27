@@ -24,7 +24,7 @@ void process_init_memory( pcb_t* pcb )
 
 MEMORY OS_Malloc( int size )
 {
-    if( size == 0 )
+    if( size <= 0 )
         return NULL;
 
     pcb_t* current_proc = get_current_process();

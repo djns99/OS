@@ -123,7 +123,8 @@ void OS_Terminate()
     free_process( pcb );
 
     OS_Yield(); // Yield the CPU to another process
-    // We should never be rescheduled
+                // We should never be rescheduled
+    KERNEL_ASSERT( false, "Should never reschedule terminated process" );
     enable_interrupts();
 }
 
@@ -137,10 +138,11 @@ void timer_preempt( uint64_t current_tick )
         case SPORADIC:
             if( !schedule_next_device() )         // Run colliding device process
                 if( !schedule_next_periodic() )   // Run preempted periodic process
-                    schedule_sporadic();        // Run sporadic process 
+                    schedule_sporadic();        // Run sporadic process
+            break;
         case DEVICE:
             // Cannot be preempted
-            return;
+            break;
     }
 
     enable_interrupts();

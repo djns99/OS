@@ -12,14 +12,14 @@ bool os_memcmp( const void* buf1, const void* buf2, size_t len ) {
     uint32_t* buf1_32 = (uint32_t*) buf1;
     uint32_t* buf2_32 = (uint32_t*) buf2;
     uint32_t i;
-    for( i = 0; i <= len - 4; buf1_32++, buf2_32++, i += 4 )
-        if( *buf1_32 != *buf2_32 )
+    for( i = 0; i < len / 4; i++ )
+        if( buf1_32[ i ] != buf2_32[ i ] )
             return false;
 
-    uint8_t* buf1_8 = (uint8_t*) buf1_32;
-    uint8_t* buf2_8 = (uint8_t*) buf2_32;
-    for( ; i < len; buf1_8++, buf2_8++, i++)
-        if( *buf1_8 != *buf2_8 )
+    uint8_t* buf1_8 = (uint8_t*) buf1;
+    uint8_t* buf2_8 = (uint8_t*) buf2;
+    for( i *= 4; i < len; i++)
+        if( buf1_8[ i ] != buf2_8[ i ] )
             return false;
     
     return true;

@@ -38,6 +38,8 @@ bool test_malloc_large() {
     os_memset8( malloc1, 0x1, alloc_size );
     os_memset8( malloc2, 0x1, alloc_size );
 
+    ASSERT_EQ( *malloc1, 1 );
+    ASSERT_EQ( *malloc2, 1 );
     ASSERT_TRUE( os_memcmp( malloc1, malloc2, alloc_size ) );
 
     os_memset8( malloc2, 0x2, alloc_size );
@@ -64,19 +66,43 @@ bool test_malloc_oom() {
     return true;
 }
 
-bool test_malloc_fuzz() {
-    MEMORY allocs[ 1024 ];
+bool test_malloc_many() {
+    uint8_t* allocs[ 1024 ];
     const uint32_t num_allocs = sizeof( allocs ) / sizeof( allocs[0] );
     
     for( uint32_t alloc_size = 1; alloc_size < 1024; alloc_size += 7 ) {
-        for( uint32_t i = 0; i < num_allocs; alloc_size++ ) {
-            allocs[ i ] = OS_Malloc( alloc_size );
+        for( uint32_t i = 0; i < num_allocs; i++ ) {
+            allocs[ i ] = (uint8_t*)OS_Malloc( alloc_size );
+            allocs[ i ][ 0 ] = i;
+            allocs[ i ][ alloc_size - 1 ] = i;
             ASSERT_NE( allocs[ i ], NULL );
         }
         
-        for( uint32_t i = 0; i < num_allocs; alloc_size++ ) {
-            ASSERT_TRUE( OS_Free( allocs[ i ] ) );
+        for( uint32_t i = 0; i < num_allocs; i++ ) {
+            ASSERT_EQ( allocs[ i ][ 0 ], (uint8_t)i );
+            ASSERT_EQ( allocs[ i ][ alloc_size - 1 ], (uint8_t)i );
+            ASSERT_TRUE( OS_Free( (MEMORY)allocs[ i ] ) );
         }
+    }
+    
+    return true;
+}
+
+bool test_malloc_variable() {
+    uint8_t* allocs[ 8192 ];
+    const uint32_t num_allocs = sizeof( allocs ) / sizeof( allocs[0] );
+    
+    for( uint32_t i = 0; i < num_allocs; i++) {
+        allocs[ i ] = (uint8_t*)OS_Malloc( i + 1 );
+        ASSERT_NE( allocs[ i ], NULL );
+        allocs[ i ][ 0 ] = i;
+        allocs[ i ][ i ] = i;
+    }
+    
+    for( uint32_t i = 0; i < num_allocs; i++ ) {
+        ASSERT_EQ( allocs[ i ][ 0 ], (uint8_t) i );
+        ASSERT_EQ( allocs[ i ][ i ], (uint8_t) i );
+        ASSERT_TRUE( OS_Free( (MEMORY) allocs[ i ] ) );
     }
     
     return true;

@@ -13,6 +13,7 @@ typedef struct {
 bool test_malloc_small();
 bool test_malloc_large();
 bool test_malloc_oom();
-bool test_malloc_fuzz();
+bool test_malloc_many();
+bool test_malloc_variable();
 
 #endif //OS_TEST_SUITE_H

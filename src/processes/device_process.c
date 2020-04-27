@@ -42,6 +42,8 @@ void init_device_state()
 void yield_device()
 {
     pcb_t* device = get_current_process();
+    if( device->state == STOPPED )
+        return;
     device->next_wake_up = current_time_slice + device->timeout;
     list_remove_node( &device->scheduling_list );
     device_insert_ordered( device );

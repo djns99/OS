@@ -40,5 +40,6 @@ bool init_sporadic( pcb_t* pcb, uint32_t n )
 
 void yield_sporadic()
 {
-    list_advance_head( &sporadic_scheduling_list );
+    if( get_current_process()->state != STOPPED )
+        list_advance_head( &sporadic_scheduling_list );
 }
