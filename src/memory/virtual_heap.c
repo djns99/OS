@@ -194,8 +194,16 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
             const uint32_t end_page = ( curr->start + curr->len ) / PAGE_SIZE;
 
             // Allocate any new pages needed
-            for( uint32_t i = start_page; i < alloc_end_page && i < end_page; i++ )
-                heap->page_alloc_func( (void*) ( i * PAGE_SIZE ), heap->alloc_flags );
+            for( uint32_t i = start_page; i < alloc_end_page && i < end_page; i++ ) {
+                if( !heap->page_alloc_func( (void*) ( i * PAGE_SIZE ), heap->alloc_flags ) )
+                {
+                    // Free any pages we allocated
+                    for( uint32_t j = start_page; j < i; j++ )
+                        heap->page_free_func( (void*)( j * PAGE_SIZE ) );
+
+                    goto fail;
+                }
+            }
 
             uint16_t* actual_addr = (uint16_t*) curr->start;
             *actual_addr = size_log;
@@ -213,6 +221,7 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
         }
     }
 
+fail:
     heap->heap_usage -= real_size;
     return NULL;
 }

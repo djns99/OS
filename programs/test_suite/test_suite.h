@@ -15,5 +15,6 @@ bool test_malloc_large();
 bool test_malloc_oom();
 bool test_malloc_many();
 bool test_malloc_variable();
+bool test_malloc_fill();
 
 #endif //OS_TEST_SUITE_H

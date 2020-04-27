@@ -1,3 +1,4 @@
+#include "memory/memory.h"
 #include "utility/memops.h"
 #include "test_suite.h"
 #include "test_helper.h"
@@ -53,7 +54,7 @@ bool test_malloc_large() {
 
 bool test_malloc_oom() {
     // Try one really large
-    const uint32_t alloc_size = INT32_MAX;
+    const uint32_t alloc_size = MAX_USER_MEMORY_SIZE;
     uint8_t* malloc1 = (void*)OS_Malloc( alloc_size );
     uint8_t* malloc2 = (void*)OS_Malloc( alloc_size );
     
@@ -103,6 +104,25 @@ bool test_malloc_variable() {
         ASSERT_EQ( allocs[ i ][ 0 ], (uint8_t) i );
         ASSERT_EQ( allocs[ i ][ i ], (uint8_t) i );
         ASSERT_TRUE( OS_Free( (MEMORY) allocs[ i ] ) );
+    }
+    
+    return true;
+}
+
+bool test_malloc_fill() {
+    uint8_t* allocs[ (MAX_USER_MEMORY_SIZE / 18691) + 1 ];
+    
+    uint32_t i = 0;
+    while ( ( allocs[ i ] = (uint8_t*)OS_Malloc( 18691 ) ) ) {
+        allocs[ i ][ 0 ] = i;
+        allocs[ i ][ 18690 ] = i;
+        i++;
+    }
+    
+    for( uint32_t j = 0; j < i; j++ ) {
+        ASSERT_EQ( allocs[ j ][ 0 ], (uint8_t)j );
+        ASSERT_EQ( allocs[ j ][ 18690 ], (uint8_t)j );
+        ASSERT_TRUE( OS_Free( (MEMORY)allocs[ j ] ) );
     }
     
     return true;

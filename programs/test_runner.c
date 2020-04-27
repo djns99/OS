@@ -9,6 +9,7 @@ static test_t test_suite[] = {
         { .name = "OOM Malloc Tests", .function = test_malloc_oom },
         { .name = "Many Malloc Tests", .function = test_malloc_many },
         { .name = "Variable Malloc Tests", .function = test_malloc_variable },
+        { .name = "Variable Malloc Tests", .function = test_malloc_fill },
 };
 
 uint32_t successes = 0;
