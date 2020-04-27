@@ -1,3 +1,4 @@
+#include "processes/process.h"
 #include "utility/debug.h"
 #include "utility/string.h"
 #include "utility/print.h"
@@ -138,6 +139,13 @@ void isr_handler( interrupt_params_t r )
                                          "Reserved" };
 
     print( "Received interrupt: %d (%s)\n", r.int_no, exception_messages[ r.int_no ] );
+    
+    if( r.int_no == 14 ) {
+        // Page fault
+        print( "Segmentation Fault for process %u\nTerminating\n", get_current_process()->pid );
+        OS_Terminate();
+        KERNEL_ASSERT( false, "Terminate returned\n" );
+    }
 }
 
 void irq_handler( interrupt_params_t r )

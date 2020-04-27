@@ -105,17 +105,17 @@ bool alloc_directory_entry( uint32_t directory_entry, uint32_t flags )
     return true;
 }
 
-uint32_t alloc_any_directory_entry( uint32_t flags )
+bool alloc_any_directory_entry( uint32_t flags )
 {
     for( uint32_t i = 0; i < PAGE_TABLE_NUM_ENTRIES - 1; i++ ) {
         if( curr_page_directory[ i ] == NULL ) {
             if( !alloc_directory_entry( i, flags ) )
-                return PAGE_TABLE_NUM_ENTRIES;
-            return i;
+                return false;
+            return true;
         }
     }
 
-    return PAGE_TABLE_NUM_ENTRIES;
+    return false;
 }
 
 size_t find_free_virtual_address()
@@ -293,7 +293,7 @@ bool free_process_memory( size_t page_dir_phys_addr )
 
     phys_page_t** dir_page_table_entry = get_table_entry( address_to_directory_entry( (size_t) page_dir ),
                                                           address_to_table_entry( (size_t) page_dir ) );
-    KERNEL_ASSERT( !dir_page_table_entry, "Allocated non-NULL virtual address" );
+    KERNEL_ASSERT( !*dir_page_table_entry, "Allocated non-NULL virtual address" );
     *dir_page_table_entry = (phys_page_t*) ( (size_t) page_dir_phys_addr | (PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG) );
     reload_page_table();
 
@@ -306,7 +306,7 @@ bool free_process_memory( size_t page_dir_phys_addr )
 
     phys_page_t** tab_page_table_entry = get_table_entry( address_to_directory_entry( (size_t) page_tab ),
                                                           address_to_table_entry( (size_t) page_tab ) );
-    KERNEL_ASSERT( !tab_page_table_entry, "Allocated non-NULL virtual address" );
+    KERNEL_ASSERT( !*tab_page_table_entry, "Allocated non-NULL virtual address" );
 
     // Loop through all pages in user address space
     for( uint32_t dir_ent = 0; dir_ent * PAGE_TABLE_BYTES_ADDRESSED < KERNEL_VIRTUAL_BASE; dir_ent++ ) {

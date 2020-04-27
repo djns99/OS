@@ -44,6 +44,7 @@ void free_phys_page( size_t address )
 {
     KERNEL_ASSERT( address, "Tried to free NULL page" );
     const uint32_t page_id = phys_address_to_page_id( address );
+    KERNEL_ASSERT( page_id, "Tried to free illegal page" );
     disable_interrupts();
     bitmap_set_bit( free_page_bitmap, page_id );
     enable_interrupts();
