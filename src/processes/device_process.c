@@ -49,8 +49,9 @@ void yield_device()
 
 bool schedule_next_device()
 {
-    pcb_t* head = LIST_GET_FIRST( pcb_t, scheduling_list, &device_scheduling_list );
+    KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule device" );
     
+    pcb_t* head = LIST_GET_FIRST( pcb_t, scheduling_list, &device_scheduling_list );
     if( head->next_wake_up > current_time_slice )
         return false;
     sched_common( head );

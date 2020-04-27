@@ -50,7 +50,7 @@ typedef struct {
 
 pcb_t* get_current_process();
 
-void timer_preempt( uint32_t current_tick );
+void timer_preempt( uint64_t current_tick );
 void init_processes();
 void register_entry_proc();
 

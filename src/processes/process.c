@@ -13,7 +13,7 @@
 pid_t current_process;
 pcb_t idle_pcb;
 pcb_t pcb_pool[MAXPROCESS];
-uint32_t current_time_slice;
+uint64_t current_time_slice;
 
 list_head_t stopped_processes;
 
@@ -108,7 +108,7 @@ void OS_Terminate()
     enable_interrupts();
 }
 
-void timer_preempt( uint32_t current_tick )
+void timer_preempt( uint64_t current_tick )
 {
     current_time_slice = current_tick;
     disable_interrupts();
