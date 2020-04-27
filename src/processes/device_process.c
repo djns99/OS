@@ -12,7 +12,7 @@ void device_insert_ordered( pcb_t* device_proc )
             break;
         prev = curr;
     }
-    
+
     if( !prev )
         list_insert_head_node( &device_scheduling_list, &device_proc->scheduling_list );
     else
@@ -50,7 +50,7 @@ void yield_device()
 bool schedule_next_device()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule device" );
-    
+
     pcb_t* head = LIST_GET_FIRST( pcb_t, scheduling_list, &device_scheduling_list );
     if( !head || head->next_wake_up > current_time_slice )
         return false;

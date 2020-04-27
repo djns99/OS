@@ -15,21 +15,20 @@ void OS_InitMemory()
     init_virtual_memory();
 }
 
-void process_init_memory( pcb_t* pcb ) {
-    init_virtual_heap( &pcb->heap, (void*) PAGE_SIZE, (void*) (MAX_USER_MEMORY_SIZE - pcb->stack_size), alloc_page_at_address, free_page,
+void process_init_memory( pcb_t* pcb )
+{
+    init_virtual_heap( &pcb->heap, (void*) PAGE_SIZE, (void*) ( MAX_USER_MEMORY_SIZE - pcb->stack_size ),
+                       alloc_page_at_address, free_page,
                        PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
 }
 
-MEMORY OS_Malloc( int val )
+MEMORY OS_Malloc( int size )
 {
-    if( val == 0 )
+    if( size == 0 )
         return NULL;
 
     pcb_t* current_proc = get_current_process();
-
-    void* address = virtual_heap_alloc( &current_proc->heap, val );
-
-    // +2 'cause spec
+    void* address = virtual_heap_alloc( &current_proc->heap, size );
     return (MEMORY) address;
 }
 

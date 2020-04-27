@@ -17,7 +17,8 @@ uint64_t current_time_slice;
 
 list_head_t stopped_processes;
 
-void register_entry_proc() {
+void register_entry_proc()
+{
     // Init process to idle
     current_process = IDLE;
     idle_pcb.pid = IDLE;
@@ -33,7 +34,7 @@ void init_processes()
     init_device_state();
     init_sporadic_state();
     init_periodic_state();
-    
+
     init_list( &stopped_processes );
 
     // init_periodic_ordering(); // TODO init idle process
@@ -64,11 +65,20 @@ void free_common( pcb_t* pcb )
 
 void cleanup_terminated()
 {
-    LIST_FOREACH( pcb_t, scheduling_list, stopped_proc, &stopped_processes ) {
-        // Cleanup address space
-        cleanup_process_address_space( stopped_proc->context.cr3 );
-        // Actually free the stopped process
-        stopped_proc->pid = INVALIDPID;
+    list_head_t failed_stops;
+    init_list( &failed_stops );
+    while( !list_is_empty( &stopped_processes ) ) {
+        pcb_t* head = LIST_GET_FIRST( pcb_t, scheduling_list, &stopped_processes );
+        list_pop_head( &stopped_processes );
+
+        if( !cleanup_process_address_space( head->context.cr3 ) ) {
+            // This process does not have the resources to do cleanup
+            list_insert_head_node( &stopped_processes, &head->scheduling_list );
+            break;
+        }
+
+        // Mark the process as freed
+        head->pid = INVALIDPID;
     }
 }
 
@@ -168,7 +178,7 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     pcb_t* pcb = alloc_pcb();
     if( pcb == NULL )
         return INVALIDPID;
-    
+
     pcb->type = level;
     pcb->arg = arg;
     pcb->function = f;

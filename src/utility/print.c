@@ -49,7 +49,7 @@ void scroll()
 {
     if( row < TEXT_MODE_HEIGHT )
         return;
-    const uint32_t memcpy_lines = (row - TEXT_MODE_HEIGHT) + 1;
+    const uint32_t memcpy_lines = ( row - TEXT_MODE_HEIGHT ) + 1;
     os_memcpy( video_memory, video_memory + TEXT_MODE_WIDTH * memcpy_lines,
                TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ) * sizeof( video_mem_entry_t ) );
     clear_range( TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ), memcpy_lines * TEXT_MODE_WIDTH );

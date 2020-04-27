@@ -54,8 +54,9 @@ void update_page_table( size_t virt_address, size_t phys_address, uint32_t flags
     KERNEL_WARNING( flags & PAGE_PRESENT_FLAG, "Page allocated without present flag" );
 
     // Update the directory flags
-    curr_page_directory[ directory_entry ] = (page_table_ref_t)((size_t)curr_page_directory[ directory_entry ] | flags);
-    
+    curr_page_directory[ directory_entry ] = (page_table_ref_t) ( (size_t) curr_page_directory[ directory_entry ] |
+                                                                  flags );
+
     // Update directory entry
     *get_table_entry( directory_entry, table_entry ) = (phys_page_t*) ( phys_address | flags );
 
@@ -76,10 +77,10 @@ void wipe_page_table_entry( size_t virt_address )
 
     // TODO Free directory entry if needed
     // TODO This is needed
-    const size_t phys_page = (size_t)page_tables[ directory_entry ][ table_entry ] & PAGE_MASK; 
+    const size_t phys_page = (size_t) page_tables[ directory_entry ][ table_entry ] & PAGE_MASK;
     page_tables[ directory_entry ][ table_entry ] = 0x0;
     reload_page_table();
-    
+
     // Free the page
     free_phys_page( phys_page );
 }
@@ -197,38 +198,43 @@ void kfree_page( void* page )
     wipe_page_table_entry( (size_t) page );
 }
 
-void alloc_stack( page_directory_ref_t page_dir, size_t stack_size ) {
+void alloc_stack( page_directory_ref_t page_dir, size_t stack_size )
+{
     KERNEL_ASSERT( stack_size <= PAGE_TABLE_BYTES_ADDRESSED, "Stack must be less than one page directory entry" );
 
-    page_table_ref_t scratch_page_table = (page_table_ref_t)alloc_any_virtual_page( PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
+    page_table_ref_t scratch_page_table = (page_table_ref_t) alloc_any_virtual_page(
+            PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
     phys_page_t** page_directory_map_entry = get_table_entry( address_to_directory_entry( (size_t) scratch_page_table ),
-                                                      address_to_table_entry( (size_t) scratch_page_table ) );
+                                                              address_to_table_entry( (size_t) scratch_page_table ) );
     const size_t phys_page = ( (size_t) *page_directory_map_entry ) & PAGE_MASK;
 
     os_memset8( scratch_page_table, 0x0, PAGE_SIZE );
 
     const uint32_t dir_ent = address_to_directory_entry( MAX_USER_MEMORY_SIZE - PAGE_SIZE );
-    page_dir[ dir_ent ] = (page_table_ref_t)(phys_page | (PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG));
-    
-    for( size_t i = 0; i < stack_size; i += PAGE_SIZE )
-    {
+    page_dir[ dir_ent ] = (page_table_ref_t) ( phys_page | ( PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG |
+                                                             PAGE_PRESENT_FLAG ) );
+
+    for( size_t i = 0; i < stack_size; i += PAGE_SIZE ) {
         const size_t stack_virt_page = MAX_USER_MEMORY_SIZE - PAGE_SIZE - i;
         KERNEL_ASSERT( address_to_directory_entry( stack_virt_page ) == dir_ent, "Overflowed directory entry" );
         const uint32_t tab_ent = address_to_table_entry( stack_virt_page );
-        
+
         // Allocate a new physical page
-        scratch_page_table[ tab_ent ] = (phys_page_t*)(alloc_phys_page() | (PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG));
+        scratch_page_table[ tab_ent ] = (phys_page_t*) ( alloc_phys_page() |
+                                                         ( PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG |
+                                                           PAGE_PRESENT_FLAG ) );
     }
 
     // Wipe local mapping for the directory entry
     *page_directory_map_entry = NULL;
     reload_page_table();
-    
+
     // At this point the page_dir will point to a page table with many physical pages
     // It contains the only reference to those pages
 }
 
-void* allocate_scratch_virt_page() {
+void* allocate_scratch_virt_page()
+{
     void* page_dir = (void*) find_free_virtual_address();
     if( !page_dir ) {
         if( !alloc_any_directory_entry( PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) )
@@ -249,17 +255,19 @@ size_t init_new_process_address_space( size_t stack_size )
 
     const uint32_t kernel_start_entry = KERNEL_VIRTUAL_BASE / PAGE_TABLE_BYTES_ADDRESSED;
     KERNEL_ASSERT( kernel_start_entry < PAGE_TABLE_NUM_ENTRIES, "Kernel started outside page directory!" );
-    
+
     // All non kernel pages start zeroed
     os_memset8( new_directory, 0x0, kernel_start_entry * sizeof( page_table_ref_t ) );
     // Memcpy the kernel pages from the root directory
-    os_memcpy( new_directory + kernel_start_entry, curr_page_directory + kernel_start_entry, (PAGE_TABLE_NUM_ENTRIES - kernel_start_entry) * sizeof( page_table_ref_t ) );
+    os_memcpy( new_directory + kernel_start_entry, curr_page_directory + kernel_start_entry,
+               ( PAGE_TABLE_NUM_ENTRIES - kernel_start_entry ) * sizeof( page_table_ref_t ) );
 
     phys_page_t** page_table_entry = get_table_entry( address_to_directory_entry( (size_t) new_directory ),
                                                       address_to_table_entry( (size_t) new_directory ) );
     const size_t phys_page = ( (size_t) *page_table_entry ) & PAGE_MASK;
     // Update the self map to refer to the new page directory
-    new_directory[ PAGE_TABLE_NUM_ENTRIES - 1 ] = (page_table_ref_t) ( phys_page | (PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG) );
+    new_directory[ PAGE_TABLE_NUM_ENTRIES - 1 ] = (page_table_ref_t) ( phys_page |
+                                                                       ( PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) );
 
     // Allocate a stack for the new process
     alloc_stack( new_directory, stack_size );
@@ -293,8 +301,9 @@ bool free_process_memory( size_t page_dir_phys_addr )
 
     phys_page_t** dir_page_table_entry = get_table_entry( address_to_directory_entry( (size_t) page_dir ),
                                                           address_to_table_entry( (size_t) page_dir ) );
-    KERNEL_ASSERT( !*dir_page_table_entry, "Allocated non-NULL virtual address" );
-    *dir_page_table_entry = (phys_page_t*) ( (size_t) page_dir_phys_addr | (PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG) );
+    KERNEL_ASSERT( *dir_page_table_entry == NULL, "Allocated non-NULL virtual address" );
+    *dir_page_table_entry = (phys_page_t*) ( (size_t) page_dir_phys_addr |
+                                             ( PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) );
     reload_page_table();
 
     page_table_ref_t page_tab = (page_table_ref_t) allocate_scratch_virt_page();
@@ -306,7 +315,7 @@ bool free_process_memory( size_t page_dir_phys_addr )
 
     phys_page_t** tab_page_table_entry = get_table_entry( address_to_directory_entry( (size_t) page_tab ),
                                                           address_to_table_entry( (size_t) page_tab ) );
-    KERNEL_ASSERT( !*tab_page_table_entry, "Allocated non-NULL virtual address" );
+    KERNEL_ASSERT( *tab_page_table_entry == NULL, "Allocated non-NULL virtual address" );
 
     // Loop through all pages in user address space
     for( uint32_t dir_ent = 0; dir_ent * PAGE_TABLE_BYTES_ADDRESSED < KERNEL_VIRTUAL_BASE; dir_ent++ ) {
@@ -315,7 +324,7 @@ bool free_process_memory( size_t page_dir_phys_addr )
             continue;
 
         const size_t phys_addr = (size_t) page_dir[ dir_ent ] & PAGE_MASK;
-        *tab_page_table_entry = (phys_page_t*) ( phys_addr | (PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG) );
+        *tab_page_table_entry = (phys_page_t*) ( phys_addr | ( PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) );
         reload_page_table();
 
         // Free any pages still allocated in the page table
@@ -331,7 +340,7 @@ bool free_process_memory( size_t page_dir_phys_addr )
     *dir_page_table_entry = NULL;
     *tab_page_table_entry = NULL;
     reload_page_table();
-    
+
     // Free the actual page directory page
     free_phys_page( page_dir_phys_addr );
 
@@ -343,11 +352,7 @@ bool cleanup_process_address_space( size_t page_dir_phys_addr )
     KERNEL_ASSERT( page_dir_phys_addr != ( (size_t) curr_page_directory[ PAGE_TABLE_NUM_ENTRIES - 1 ] & PAGE_MASK ),
                    "Tried to clean up address space of running process" );
 
-    if( !free_process_memory( page_dir_phys_addr ) )
-        return false;
-
-    free_phys_page( page_dir_phys_addr );
-    return true;
+    return free_process_memory( page_dir_phys_addr );
 }
 
 void init_virtual_memory()

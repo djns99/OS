@@ -25,6 +25,8 @@ typedef struct {
     size_t pool_size;
     range_list_entry_t* last_pool_alloc_loc;
 
+    // Debug variable
+    // May also be useful for reaping on OOM
     uint32_t heap_usage;
 } virtual_heap_t;
 

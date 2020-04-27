@@ -57,27 +57,29 @@ range_list_entry_t* locate_predecessor( list_head_t* free_list, size_t start )
     return prev;
 }
 
-void free_new_range( virtual_heap_t* heap, range_list_entry_t* first ) {
+void free_new_range( virtual_heap_t* heap, range_list_entry_t* first )
+{
     // Round up to first full page
     const uint32_t start_page = CEIL_DIV( first->start, PAGE_SIZE );
     // Round down to last full page
-    const uint32_t end_page = (first->start+ first->len) / PAGE_SIZE;
+    const uint32_t end_page = ( first->start + first->len ) / PAGE_SIZE;
     // Loop through all freed pages
     for( uint32_t i = start_page; i < end_page; i++ )
-        heap->page_free_func( (void*)(i * PAGE_SIZE) );
+        heap->page_free_func( (void*) ( i * PAGE_SIZE ) );
 }
 
-void merge_free_ranges( virtual_heap_t* heap, range_list_entry_t* first, range_list_entry_t* second ) {
+void merge_free_ranges( virtual_heap_t* heap, range_list_entry_t* first, range_list_entry_t* second )
+{
     // If we start on a border free that page
     const uint32_t start_page = first->start >> PAGE_SIZE_LOG;
-    const uint32_t end_page = (second->start + second->len) >> PAGE_SIZE_LOG;
+    const uint32_t end_page = ( second->start + second->len ) >> PAGE_SIZE_LOG;
     const uint32_t join_page = second->start >> PAGE_SIZE_LOG;
     if( start_page != join_page && end_page != join_page ) {
         // Free border page if it was split between both entries
         if( second->start % PAGE_SIZE )
-            heap->page_free_func( (void*)(join_page * PAGE_SIZE) );
+            heap->page_free_func( (void*) ( join_page * PAGE_SIZE ) );
     }
-    
+
     // Update first pointer
     first->len += second->len;
     // Free second pointer
@@ -90,7 +92,7 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
     size_t addr = (size_t) addr_ptr;
     range_list_entry_t* prev = locate_predecessor( &heap->free_list, addr );
     range_list_entry_t* next = NULL;
-    
+
     if( prev == NULL )
         next = LIST_GET_FIRST( range_list_entry_t, list_node, &heap->free_list );
     else
@@ -98,7 +100,7 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
 
     if( prev && prev->start + prev->len > addr )
         return heap_free_fatal;
-    
+
     // Allocate entry for new node
     range_list_entry_t* me = alloc_pool_entry( heap, addr, size );
     if( !me )
@@ -109,18 +111,18 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
         list_insert_head_node( &heap->free_list, &me->list_node );
     else
         list_insert_after_node( &prev->list_node, &me->list_node );
-    
+
     // Merge with the previous node if needed
     if( prev && prev->start + prev->len == addr ) {
         merge_free_ranges( heap, prev, me );
         // Update me pointer to prev node
         me = prev;
     }
-    
+
     // Merge with next node if needed
     if( next && next->start == addr + size )
         merge_free_ranges( heap, me, next );
-    
+
     return heap_free_ok;
 }
 
@@ -134,7 +136,7 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     heap->page_alloc_func = page_alloc_func;
     heap->page_free_func = page_free_func;
     heap->alloc_flags = alloc_flags;
-    
+
     init_list( &heap->free_list );
 
     const uint32_t heap_size = start_addr - end_addr;
@@ -152,7 +154,7 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
             return false;
         }
     }
-    
+
     heap->node_pool = start_addr;
     heap->pool_size = pool_num_pages * PAGE_SIZE;
     heap->last_pool_alloc_loc = heap->node_pool;
@@ -160,7 +162,7 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     range_list_entry_t* list_node = alloc_pool_entry( heap, (size_t) start_addr + heap->pool_size,
                                                       heap_size - heap->pool_size );
     KERNEL_ASSERT( list_node, "Failed to allocate list node from new pool" );
-    
+
     list_insert_head_node( &heap->free_list, &list_node->list_node );
 
     heap->heap_usage = heap->pool_size;
@@ -181,15 +183,19 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
 
     // First fit algorithm
     LIST_FOREACH( range_list_entry_t, list_node, curr, &heap->free_list ) {
+        KERNEL_ASSERT( curr != NULL, "Got a null entry in list" );
         if( curr->len >= real_size ) {
             const uint32_t start_page = CEIL_DIV( curr->start, PAGE_SIZE );
-            const uint32_t end_page = ( curr->start + real_size ) / PAGE_SIZE;
-            
+            // Rounds up to last needed page
+            const uint32_t alloc_end_page = CEIL_DIV( curr->start + real_size, PAGE_SIZE );
+            // Rounds down to last unallocated page
+            const uint32_t end_page = ( curr->start + curr->len ) / PAGE_SIZE;
+
             // Allocate any new pages needed
-            for( uint32_t i = start_page; i < end_page; i++ )
-                heap->page_alloc_func( (void*)(i * PAGE_SIZE), heap->alloc_flags );
-            
-            uint16_t* actual_addr = (uint16_t*)curr->start;
+            for( uint32_t i = start_page; i < alloc_end_page && i < end_page; i++ )
+                heap->page_alloc_func( (void*) ( i * PAGE_SIZE ), heap->alloc_flags );
+
+            uint16_t* actual_addr = (uint16_t*) curr->start;
             *actual_addr = size_log;
 
             // Remove the allocated range from entry
@@ -199,7 +205,7 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
                 list_remove_node( &curr->list_node );
                 free_pool_entry( curr );
             }
-            
+
             // Add 1 to address to skip size stored in first word
             return actual_addr + 1;
         }
@@ -213,5 +219,6 @@ heap_free_res_t virtual_heap_free( virtual_heap_t* heap, void* addr )
 {
     void* actual_addr = addr - 2;
     const uint32_t size = ( 1u << *(uint16_t*) actual_addr ) + 2;
+    heap->heap_usage -= size;
     return insert_free_list( heap, actual_addr, size );
 }

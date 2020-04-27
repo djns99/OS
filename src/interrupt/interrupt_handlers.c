@@ -139,7 +139,7 @@ void isr_handler( interrupt_params_t r )
                                          "Reserved" };
 
     print( "Received interrupt: %d (%s)\n", r.int_no, exception_messages[ r.int_no ] );
-    
+
     if( r.int_no == 14 ) {
         // Page fault
         print( "Segmentation Fault for process %u\nTerminating\n", get_current_process()->pid );

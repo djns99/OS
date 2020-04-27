@@ -50,8 +50,8 @@ void init_page_map()
             continue;
 
         print( "| 0x%X - 0x%X ( Length %U Type %u ) |\n", memmap_table[ i ].start,
-               memmap_table[ i ].start + memmap_table[ i ].length - 1,
-               memmap_table[ i ].length, memmap_table[ i ].type );
+               memmap_table[ i ].start + memmap_table[ i ].length - 1, memmap_table[ i ].length,
+               memmap_table[ i ].type );
         if( memmap_table[ i ].type == USABLE_RAM ) {
             uint32_t start = (uint32_t) memmap_table[ i ].start;
             uint32_t length = (uint32_t) memmap_table[ i ].length;
@@ -65,7 +65,7 @@ void init_page_map()
                 start += PAGE_SIZE;
                 length -= PAGE_SIZE;
             }
-            
+
             // Round to page boundaries
             const uint32_t rounded_start = CEIL_DIV( start, PAGE_SIZE ) * PAGE_SIZE;
             length -= rounded_start - start;
@@ -74,7 +74,7 @@ void init_page_map()
 
             filtered_memmap_table[ num_filtered_entries ].start = start;
             filtered_memmap_table[ num_filtered_entries ].length = length;
-            
+
             usable_ram += length;
             num_filtered_entries++;
         }

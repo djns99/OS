@@ -5,14 +5,13 @@
 #include "utility/print.h"
 #include "kernel.h"
 #include "peripherals/timer.h"
-#include "utility/debug.h"
 #include "peripherals/keyboard.h"
 #include "processes/process.h"
 
 void OS_Init()
 {
     register_entry_proc();
-    
+
     set_fg_colour( TEXT_GREEN );
     set_bg_colour( TEXT_BLACK );
     clear_screen();
@@ -38,11 +37,11 @@ void OS_Start()
     // Launch initial process
     // We are the idle process
     OS_Create( test, 0, SPORADIC, 0 );
-    
+
     // Kick off interrupts now
     print( "Enabling interrupts\n" );
     enable_interrupts();
-    
+
     // Idle loop
     while( true ) {
         // Yield to any new processes
@@ -55,12 +54,12 @@ void OS_Start()
 void OS_Abort()
 {
     print( "\nKernel abort triggered. Ceasing all operation\n" );
-    // TODO Actually power down
+    // TODO Actually power down?
     // Disable interrupt and halts
     // Requires hard reboot to recover
     disable_interrupts();
-    while (true)
-        asm("hlt");
+    while( true )
+            asm("hlt");
 }
 
 void entry_point()

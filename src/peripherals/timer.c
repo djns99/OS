@@ -2,7 +2,6 @@
 #include "timer.h"
 #include "interrupt/interrupt_handlers.h"
 #include "io_ports.h"
-#include "utility/print.h"
 
 uint64_t tick = 0;
 

@@ -39,10 +39,10 @@ void yield_periodic()
 bool continue_periodic()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule periodic" );
-    
+
     if( yielded )
         return false;
-    
+
     sched_common( periodic_pool[ ppp_index ] );
     return true;
 }
@@ -50,17 +50,17 @@ bool continue_periodic()
 bool schedule_next_periodic()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule periodic" );
-    
+
     if( current_time_slice < next_periodic_start )
         return false;
-    
+
     // Loop while we are behind
     // This will happen if a device process took more than one slot
     // Or if someone had interrupts disabled for a long time
-    while ( current_time_slice >= next_periodic_start ) {
+    while( current_time_slice >= next_periodic_start ) {
         ppp_index++;
         ppp_index %= PPPLen;
-        next_periodic_start += PPPMax[ ppp_index ]; 
+        next_periodic_start += PPPMax[ ppp_index ];
     }
 
     // Dont schedule anything if we are idle
@@ -71,10 +71,10 @@ bool schedule_next_periodic()
 bool init_periodic( pcb_t* pcb, uint32_t n )
 {
     // Check if process with name already exists
-    if(periodic_pool[n] != NULL)
+    if( periodic_pool[ n ] != NULL )
         return false;
-    
+
     // Allocate the pool entry
-    periodic_pool[n] = pcb;
+    periodic_pool[ n ] = pcb;
     return true;
 }

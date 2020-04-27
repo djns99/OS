@@ -12,13 +12,13 @@ void init_sporadic_state()
 void schedule_sporadic()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule sporadic" );
-    
+
     if( list_is_empty( &sporadic_scheduling_list ) ) {
         // We have no work to do, schedule the idle process until the next process
         sched_common( &idle_pcb );
         return;
     }
-    
+
     pcb_t* new_proc = LIST_GET_FIRST( pcb_t, scheduling_list, &sporadic_scheduling_list );
     sched_common( new_proc );
 }
