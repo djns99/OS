@@ -111,11 +111,11 @@ bool alloc_any_directory_entry( uint32_t flags )
     for( uint32_t i = 0; i < PAGE_TABLE_NUM_ENTRIES - 1; i++ ) {
         if( i * PAGE_TABLE_BYTES_ADDRESSED >= KERNEL_VIRTUAL_BASE )
             break;
-        
+
         if( curr_page_directory[ i ] == NULL ) {
             if( !alloc_directory_entry( i, flags ) )
                 return false;
-            
+
             return true;
         }
     }

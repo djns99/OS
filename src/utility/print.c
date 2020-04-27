@@ -104,6 +104,16 @@ void set_bg_colour( uint8_t colour )
     curr_colour |= colour << 4u;
 }
 
+uint8_t get_fg_colour()
+{
+    return curr_colour & 0xFu;
+}
+
+uint8_t get_bg_colour()
+{
+    return curr_colour >> 4u;
+}
+
 void newline()
 {
     row++;

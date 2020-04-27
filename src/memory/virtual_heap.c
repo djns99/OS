@@ -164,7 +164,7 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     KERNEL_ASSERT( list_node, "Failed to allocate list node from new pool" );
     KERNEL_ASSERT( list_node->start, "Allocated list node with NULL start" );
     KERNEL_ASSERT( list_node->len, "Allocated list node with 0 length" );
-    
+
     list_insert_head_node( &heap->free_list, &list_node->list_node );
 
     heap->heap_usage = heap->pool_size;
@@ -173,7 +173,7 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
 
 void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
 {
-    if( size == 0 )
+    if( size == 0 || size > INT32_MAX )
         return NULL;
     if( size == 1 )
         size++;

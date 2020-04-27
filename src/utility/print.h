@@ -21,8 +21,9 @@
 #define TEXT_YELLOW 0xe
 
 void set_fg_colour( uint8_t colour );
-
 void set_bg_colour( uint8_t colour );
+uint8_t get_fg_colour();
+uint8_t get_bg_colour();
 
 void clear_screen();
 

@@ -5,7 +5,8 @@
 #include "print.h"
 
 // Stub function to break on in GDB
-static inline void debug_kern_warn_break() {}
+static inline void debug_kern_warn_break()
+{}
 
 #define KERNEL_ASSERT( condition, msg ) do{ if(!(condition)) {                                                                   \
  print( "\nKernel assert failed at %s:%d\nAssertion:\n\t%s\nWith message:\n\t%s", __FILE__, __LINE__,#condition, (msg) );        \

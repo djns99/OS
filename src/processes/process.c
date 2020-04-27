@@ -187,7 +187,7 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     pcb_t* pcb = alloc_pcb();
     if( pcb == NULL )
         return INVALIDPID;
-    
+
     pcb->type = level;
     pcb->arg = arg;
     pcb->function = f;
@@ -195,7 +195,7 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     pcb->stack_size = DEFAULT_STACK_SIZE;
     pcb->context.cr3 = NULL;
     pcb->context.stack = NULL;
-    
+
     bool res;
     switch( level ) {
         case PERIODIC:

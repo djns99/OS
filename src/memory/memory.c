@@ -36,8 +36,11 @@ BOOL OS_Free( MEMORY m )
 {
     PROCESS_ASSERT( m, "Freed NULL pointer" );
     pcb_t* current_proc = get_current_process();
-    virtual_heap_free( &current_proc->heap, (void*) m );
-    // I don't know why this would fail
-    return true;
+    heap_free_res_t res = virtual_heap_free( &current_proc->heap, (void*) m );
+    if( res == heap_free_ok )
+        return true;
+
+    PROCESS_WARNING( res != heap_free_oom, "Process had insufficient resources to free memory" );
+    return false;
 }
 

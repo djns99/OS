@@ -29,14 +29,14 @@ void OS_Init()
     init_interrupts();
 }
 
-extern void test();
+extern void test_runner();
 
 void OS_Start()
 {
     // TODO Launch shell
     // Launch initial process
     // We are the idle process
-    if( OS_Create( test, 0, SPORADIC, 0 ) == INVALIDPID )
+    if( OS_Create( test_runner, 0, SPORADIC, 0 ) == INVALIDPID )
         print( "Failed to start initial program\nSystem will now hang.\n" );
 
     // Kick off interrupts now
