@@ -64,7 +64,9 @@ bool schedule_next_periodic()
     }
 
     // Dont schedule anything if we are idle
-    yielded = PPP[ ppp_index ] == IDLE;
+    // Or if there is no process currently assigned to this slot
+    const periodic_name_t scheduled_process = PPP[ ppp_index ];
+    yielded = scheduled_process == IDLE || periodic_pool[ scheduled_process ] == NULL;
     return !yielded;
 }
 

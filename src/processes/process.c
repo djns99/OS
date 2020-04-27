@@ -56,6 +56,10 @@ pcb_t* alloc_pcb()
 void free_common( pcb_t* pcb )
 {
     KERNEL_ASSERT( pcb->interrupt_disables != 0, "Interrupts were enabled while freeing request" );
+    if( !pcb->context.cr3 ) {
+        pcb->pid = INVALIDPID;
+        return;
+    }
     pcb->state = STOPPED;
 
     disable_interrupts();
@@ -96,11 +100,8 @@ void sched_common( pcb_t* new_proc )
     enable_interrupts();
 }
 
-void OS_Terminate()
+void free_process( pcb_t* pcb )
 {
-    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
-    disable_interrupts();
-    pcb_t* pcb = get_current_process();
     switch( pcb->type ) {
         case PERIODIC:
             free_periodic( pcb );
@@ -112,6 +113,14 @@ void OS_Terminate()
             free_device( pcb );
             break;
     }
+}
+
+void OS_Terminate()
+{
+    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
+    disable_interrupts();
+    pcb_t* pcb = get_current_process();
+    free_process( pcb );
 
     OS_Yield(); // Yield the CPU to another process
     // We should never be rescheduled
@@ -178,14 +187,15 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     pcb_t* pcb = alloc_pcb();
     if( pcb == NULL )
         return INVALIDPID;
-
+    
     pcb->type = level;
     pcb->arg = arg;
     pcb->function = f;
     pcb->interrupt_disables = 1;
     pcb->stack_size = DEFAULT_STACK_SIZE;
-    process_init_memory( pcb );
-
+    pcb->context.cr3 = NULL;
+    pcb->context.stack = NULL;
+    
     bool res;
     switch( level ) {
         case PERIODIC:
@@ -206,9 +216,16 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     }
 
     pcb->context.cr3 = init_new_process_address_space( pcb->stack_size );
+    // Failed to allocate address space
+    if( !pcb->context.cr3 ) {
+        free_process( pcb );
+        enable_interrupts();
+        return INVALIDPID;
+    }
+
     // TODO Does this have to be -16?
     pcb->context.stack = MAX_USER_MEMORY_SIZE - 16;
-
+    
     fork_process( &pcb->context, &get_current_process()->context, pcb );
 
     enable_interrupts();
@@ -223,6 +240,9 @@ void new_proc_entry_point( void* start_param )
     KERNEL_ASSERT( pcb->interrupt_disables == 1, "Process started with wrong number of interrupts" );
     // We will have interrupt disabled when we start 
     enable_interrupts();
+
+    // Initialise our memory
+    process_init_memory( pcb );
 
     // Child process will be run and terminate
     pcb->function();

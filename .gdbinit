@@ -10,5 +10,6 @@ focus cmd
 break entry_point
 break OS_Abort
 break isr_handler
+break debug_kern_warn_break
 #break fork_process
 continue

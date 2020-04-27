@@ -7,7 +7,7 @@ uint64_t tick = 0;
 
 void handler( interrupt_params_t* r )
 {
-    timer_preempt( tick++ );
+//    timer_preempt( tick++ );
 }
 
 void init_timer( uint32_t freq )

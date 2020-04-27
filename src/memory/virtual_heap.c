@@ -162,7 +162,9 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     range_list_entry_t* list_node = alloc_pool_entry( heap, (size_t) start_addr + heap->pool_size,
                                                       heap_size - heap->pool_size );
     KERNEL_ASSERT( list_node, "Failed to allocate list node from new pool" );
-
+    KERNEL_ASSERT( list_node->start, "Allocated list node with NULL start" );
+    KERNEL_ASSERT( list_node->len, "Allocated list node with 0 length" );
+    
     list_insert_head_node( &heap->free_list, &list_node->list_node );
 
     heap->heap_usage = heap->pool_size;

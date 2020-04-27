@@ -109,9 +109,13 @@ bool alloc_directory_entry( uint32_t directory_entry, uint32_t flags )
 bool alloc_any_directory_entry( uint32_t flags )
 {
     for( uint32_t i = 0; i < PAGE_TABLE_NUM_ENTRIES - 1; i++ ) {
+        if( i * PAGE_TABLE_BYTES_ADDRESSED >= KERNEL_VIRTUAL_BASE )
+            break;
+        
         if( curr_page_directory[ i ] == NULL ) {
             if( !alloc_directory_entry( i, flags ) )
                 return false;
+            
             return true;
         }
     }
@@ -119,9 +123,11 @@ bool alloc_any_directory_entry( uint32_t flags )
     return false;
 }
 
-size_t find_free_virtual_address()
+size_t find_free_user_virtual_address()
 {
     for( uint32_t root_table_entry = 0; root_table_entry < PAGE_TABLE_NUM_ENTRIES - 1; root_table_entry++ ) {
+        if( root_table_entry * PAGE_TABLE_BYTES_ADDRESSED >= KERNEL_VIRTUAL_BASE )
+            break;
         if( curr_page_directory[ root_table_entry ] == NULL )
             continue;
 
@@ -136,12 +142,26 @@ size_t find_free_virtual_address()
     return NULL;
 }
 
+void* allocate_scratch_virt_page()
+{
+    void* page_dir = (void*) find_free_user_virtual_address();
+    if( !page_dir ) {
+        if( !alloc_any_directory_entry( PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) )
+            return NULL;
+        else
+            page_dir = (page_directory_ref_t) find_free_user_virtual_address();
+        KERNEL_ASSERT( page_dir, "Failed to allocate page in brand new directory entry" );
+    }
+    return page_dir;
+}
+
+
 /*
  * Public functions
  */
 void* alloc_any_virtual_page( uint32_t flags )
 {
-    void* virt_address = (void*) find_free_virtual_address();
+    void* virt_address = allocate_scratch_virt_page();
     if( virt_address == NULL )
         return NULL;
     if( !alloc_page_at_address( virt_address, flags ) )
@@ -231,19 +251,6 @@ void alloc_stack( page_directory_ref_t page_dir, size_t stack_size )
 
     // At this point the page_dir will point to a page table with many physical pages
     // It contains the only reference to those pages
-}
-
-void* allocate_scratch_virt_page()
-{
-    void* page_dir = (void*) find_free_virtual_address();
-    if( !page_dir ) {
-        if( !alloc_any_directory_entry( PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) )
-            return NULL;
-        else
-            page_dir = (page_directory_ref_t) find_free_virtual_address();
-        KERNEL_ASSERT( page_dir, "Failed to allocate page in brand new directory entry" );
-    }
-    return page_dir;
 }
 
 size_t init_new_process_address_space( size_t stack_size )
