@@ -12,6 +12,12 @@ global _start
 _start:
 lea eax, [load_memmap - KERNEL_OFFSET]
 call eax
+lea eax, [root_page_directory - KERNEL_OFFSET]
+clear_page_table:
+mov [eax], dword 0
+add eax, 4
+cmp eax, (end_page_table - KERNEL_OFFSET)
+jl clear_page_table
 mov eax, (kernel_end - KERNEL_OFFSET + 0x100 + 3) ; Get where we need to map up to
 mov ebx, (virtual_page_table - KERNEL_OFFSET + 16 * 4) ; Start table entry
 mov ecx, (kernel_start - KERNEL_OFFSET + 0x3) ; Start physical offset
@@ -57,15 +63,13 @@ mov esp, stack_top ; Set the stack to our temporary kernel stack
 call entry_point
 jmp $
 
-section .data
-align 0x1000
-root_page_directory:
-    times 4096 db 0
-virtual_page_table:
-    times 4096 db 0
-    
 section .bss
 align 0x1000
+root_page_directory:
+    resb 4096
+virtual_page_table:
+    resb 4096
+end_page_table:
 global video_memory
 video_memory:
     resb 4096
