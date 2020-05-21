@@ -90,6 +90,9 @@ void consumer_func()
 
 bool test_mpmc_fifo()
 {
+    cumulative = 0;
+    xor = 0;
+    
     ASSERT_LE( FIFOSIZE / 3, MAX_TEST_PROCESSES );
     const uint32_t num_procucers = FIFOSIZE / 3;
     const uint32_t num_consumers = MAX_TEST_PROCESSES - FIFOSIZE / 3;

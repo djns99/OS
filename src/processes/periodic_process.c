@@ -6,9 +6,9 @@
 pcb_t* periodic_pool[MAXPROCESS];
 
 // TODO
-int PPPLen = 1;
-periodic_name_t PPP[MAXPROCESS] = { IDLE };
-periodic_name_t PPPMax[MAXPROCESS] = { INT32_MAX };
+int PPPLen = 4;
+periodic_name_t PPP[MAXPROCESS] = { 1, 2, 3, 4 };
+periodic_name_t PPPMax[MAXPROCESS] = { 100, 100, 100, 100 };
 uint64_t next_periodic_start;
 uint32_t ppp_index;
 bool yielded;
@@ -70,7 +70,12 @@ bool schedule_next_periodic()
     const periodic_name_t scheduled_process = PPP[ ppp_index ];
     yielded = scheduled_process == IDLE || periodic_pool[ scheduled_process ] == NULL;
     const bool blocked = periodic_pool[ scheduled_process ] && periodic_pool[ scheduled_process ]->state == BLOCKED;
-    return !yielded && !blocked;
+    if( !yielded && !blocked )
+    {
+        sched_common( periodic_pool[ scheduled_process ] );
+        return true;
+    }
+    return false;
 }
 
 bool periodic_is_ready( pcb_t* pcb ) {

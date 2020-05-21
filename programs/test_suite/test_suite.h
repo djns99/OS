@@ -25,4 +25,6 @@ bool test_spsc_fifo();
 bool test_mpsc_fifo();
 bool test_mpmc_fifo();
 
+bool test_process_scheduling();
+
 #endif //OS_TEST_SUITE_H

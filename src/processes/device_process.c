@@ -59,7 +59,7 @@ bool schedule_next_device()
         // All the ones after this are still sleeping
         if( curr->next_wake_up > current_time_slice )
             return false;
-        if( curr->state != BLOCKED )
+        if( curr->state == BLOCKED )
             continue;
         sched_common( curr );
         return true;

@@ -57,12 +57,12 @@ range_list_entry_t* locate_predecessor( list_head_t* free_list, size_t start )
     return prev;
 }
 
-void free_new_range( virtual_heap_t* heap, range_list_entry_t* first )
+void free_new_range( virtual_heap_t* heap, range_list_entry_t* new_range )
 {
     // Round up to first full page
-    const uint32_t start_page = CEIL_DIV( first->start, PAGE_SIZE );
+    const uint32_t start_page = CEIL_DIV( new_range->start, PAGE_SIZE );
     // Round down to last full page
-    const uint32_t end_page = ( first->start + first->len ) / PAGE_SIZE;
+    const uint32_t end_page = ( new_range->start + new_range->len ) / PAGE_SIZE;
     // Loop through all freed pages
     for( uint32_t i = start_page; i < end_page; i++ )
         heap->page_free_func( (void*) ( i * PAGE_SIZE ) );
@@ -106,6 +106,8 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
     if( !me )
         return heap_free_oom;
 
+    free_new_range( heap, me );
+    
     // Insert into list
     if( !prev )
         list_insert_head_node( &heap->free_list, &me->list_node );
@@ -139,7 +141,7 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
 
     init_list( &heap->free_list );
 
-    const uint32_t heap_size = start_addr - end_addr;
+    const uint32_t heap_size = end_addr - start_addr;
     const uint32_t pool_entries_per_page = PAGE_SIZE / sizeof( range_list_entry_t );
     const uint32_t heap_num_pages = heap_size >> PAGE_SIZE_LOG;
     const uint32_t pool_num_pages = CEIL_DIV( heap_num_pages, pool_entries_per_page );

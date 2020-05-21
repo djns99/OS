@@ -51,6 +51,17 @@ bool test_malloc_large()
     OS_Free( (MEMORY) malloc1 );
     OS_Free( (MEMORY) malloc2 );
 
+    OS_Yield();
+
+    uint8_t* malloc3 = (void*) OS_Malloc( alloc_size );
+    uint8_t* malloc4 = (void*) OS_Malloc( alloc_size );
+
+    ASSERT_EQ( malloc1, malloc3 );
+    ASSERT_EQ( malloc2, malloc4 );
+
+    OS_Free( (MEMORY) malloc3 );
+    OS_Free( (MEMORY) malloc4 );
+
     return true;
 }
 
@@ -58,8 +69,11 @@ bool test_malloc_oom()
 {
     // Try one really large
     const uint32_t alloc_size = MAX_USER_MEMORY_SIZE;
-    uint8_t* malloc1 = (void*) OS_Malloc( alloc_size );
-    uint8_t* malloc2 = (void*) OS_Malloc( alloc_size );
+    uint8_t* malloc1 = (void*) OS_Malloc( alloc_size / 2 );
+
+    ASSERT_NE( malloc1, NULL );
+
+    uint8_t* malloc2 = (void*) OS_Malloc( alloc_size / 2 );
 
     // We know malloc 2 must fail
     ASSERT_EQ( malloc2, NULL );
