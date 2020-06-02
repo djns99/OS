@@ -6,7 +6,6 @@
 void running_a_bunch()
 {
     int arg = OS_GetParam();
-    print("%d: Running\n", arg);
 
     if (arg == 1)
         OS_Create( (void ( * )( void )) running_a_bunch, 2, PERIODIC, 2);
@@ -15,8 +14,6 @@ void running_a_bunch()
     else if(arg == 3)
         OS_Create( (void ( * )( void )) running_a_bunch, 4, PERIODIC, 4);
     OS_Signal(HOST_NOTIFY_SEM_SCHEDULING);
-    
-    print("Periodic %d done\n", arg);
 }
 
 bool test_process_scheduling()

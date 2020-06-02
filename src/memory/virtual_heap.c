@@ -178,36 +178,43 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
     const uint32_t real_size = ( 1u << size_log ) + 2;
     heap->heap_usage += real_size;
 
+    range_list_entry_t* selected = NULL;
     // First fit algorithm
     LIST_FOREACH( range_list_entry_t, list_node, curr, &heap->free_list ) {
         KERNEL_ASSERT( curr != NULL, "Got a null entry in list" );
         if( curr->len >= real_size ) {
-            const uint32_t start_page = CEIL_DIV( curr->start, PAGE_SIZE );
-            // Rounds up to last needed page
-            const uint32_t alloc_end_page = CEIL_DIV( curr->start + real_size, PAGE_SIZE );
-            // Rounds down to last unallocated page
-            const uint32_t end_page = ( curr->start + curr->len ) / PAGE_SIZE;
-            KERNEL_ASSERT( end_page >= start_page && alloc_end_page >= start_page, "Underflow bug" );
-
-            if( !heap->page_alloc_func( (void*) ( start_page * PAGE_SIZE ),
-                                        MIN( alloc_end_page - start_page, end_page - start_page ), heap->alloc_flags ) )
-                goto fail;
-
-            uint16_t* actual_addr = (uint16_t*) curr->start;
-            *actual_addr = size_log;
-
-            // Remove the allocated range from entry
-            curr->start += real_size;
-            curr->len -= real_size;
-            if( curr->len == 0 ) {
-                list_remove_node( &curr->list_node );
-                free_pool_entry( curr );
-            }
-
-            // Add 1 to address to skip size stored in first word
-            return actual_addr + 1;
+            selected = curr;
+            break;
         }
     }
+
+    if( selected == NULL )
+        goto fail;
+
+    const uint32_t start_page = CEIL_DIV( selected->start, PAGE_SIZE );
+    // Rounds up to last needed page
+    const uint32_t alloc_end_page = CEIL_DIV( selected->start + real_size, PAGE_SIZE );
+    // Rounds down to last unallocated page
+    const uint32_t end_page = ( selected->start + selected->len ) / PAGE_SIZE;
+    KERNEL_ASSERT( end_page >= start_page && alloc_end_page >= start_page, "Underflow bug" );
+
+    if( !heap->page_alloc_func( (void*) ( start_page * PAGE_SIZE ),
+                                MIN( alloc_end_page - start_page, end_page - start_page ), heap->alloc_flags ) )
+        goto fail;
+
+    uint16_t* actual_addr = (uint16_t*) selected->start;
+    *actual_addr = size_log;
+
+    // Remove the allocated range from entry
+    selected->start += real_size;
+    selected->len -= real_size;
+    if( selected->len == 0 ) {
+        list_remove_node( &selected->list_node );
+        free_pool_entry( selected );
+    }
+
+    // Add 1 to address to skip size stored in first word
+    return actual_addr + 1;
 
     fail:
     heap->heap_usage -= real_size;

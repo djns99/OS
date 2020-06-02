@@ -22,7 +22,6 @@ phys_page_t** get_table_entry( uint32_t directory_entry, uint32_t table_entry )
 
 //void reload_page_table()
 //{
-//    // TODO Use invlg instruction
 //    // Reload cr3 to flush updates
 //    asm volatile( "mov %%cr3, %%eax;"
 //                  "mov %%eax, %%cr3;":: : "memory" );
@@ -66,7 +65,7 @@ void update_page_table( size_t virt_address, size_t phys_address, uint32_t flags
     const size_t table_entry = address_to_table_entry( virt_address );
     KERNEL_ASSERT( ( phys_address % PAGE_SIZE ) == 0, "Physical address is not aligned to a page" );
     KERNEL_ASSERT( ( virt_address % PAGE_SIZE ) == 0, "Virtual address is not aligned to a page" );
-    KERNEL_ASSERT( page_directory_entry_is_valid( directory_entry ), "Updated non-existant page table" );
+    KERNEL_ASSERT( page_directory_entry_is_valid( directory_entry ), "Updated non-existent page table" );
     KERNEL_WARNING( flags & PAGE_PRESENT_FLAG, "Page allocated without present flag" );
 
     // Update the directory flags
@@ -105,16 +104,13 @@ bool alloc_directory_entry( uint32_t directory_entry, uint32_t flags )
         return false;
 
     KERNEL_ASSERT( ( phys_address % PAGE_SIZE ) == 0, "Physical address is not aligned to a page" );
+
     // Update the directory to point to new entry
     curr_page_directory[ directory_entry ] = (page_table_ref_t) ( phys_address | flags );
-    reload_page_table_address_range( directory_entry * PAGE_TABLE_BYTES_ADDRESSED,
-                                     directory_entry * PAGE_TABLE_BYTES_ADDRESSED + PAGE_TABLE_BYTES_ADDRESSED - 1 );
-    reload_page_table_page( (uint32_t) get_page_table( directory_entry ) >> PAGE_SIZE_LOG );
+    reload_page_table_address( (uint32_t) get_page_table( directory_entry ) );
 
     // Wipe self mapped entry
     os_memset8( (void*) get_page_table( directory_entry ), 0x0, PAGE_SIZE );
-    reload_page_table_address_range( directory_entry * PAGE_TABLE_BYTES_ADDRESSED,
-                                     directory_entry * PAGE_TABLE_BYTES_ADDRESSED + PAGE_TABLE_BYTES_ADDRESSED - 1 );
 
     return true;
 }

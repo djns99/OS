@@ -8,7 +8,7 @@ pcb_t* periodic_pool[MAXPROCESS];
 // TODO
 int PPPLen = 4;
 periodic_name_t PPP[MAXPROCESS] = { 1, 2, 3, 4 };
-periodic_name_t PPPMax[MAXPROCESS] = { 100, 100, 100, 100 };
+periodic_name_t PPPMax[MAXPROCESS] = { 10, 10, 10, 10 };
 uint64_t next_periodic_start;
 uint32_t ppp_index;
 bool yielded;
