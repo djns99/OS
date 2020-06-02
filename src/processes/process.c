@@ -32,13 +32,10 @@ void init_processes()
     KERNEL_ASSERT( INVALIDPID == 0, "Invalid pid is expected to be 0" );
     KERNEL_ASSERT( current_process == IDLE, "Did not register the entry process! Do this first" );
     os_memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
+    init_list( &stopped_processes );
     init_device_state();
     init_sporadic_state();
     init_periodic_state();
-
-    init_list( &stopped_processes );
-
-    // init_periodic_ordering(); // TODO init idle process
 }
 
 pcb_t* alloc_pcb()
@@ -88,14 +85,16 @@ void cleanup_terminated()
 void sched_common( pcb_t* new_proc )
 {
     disable_interrupts();
+    KERNEL_ASSERT( new_proc->state != BLOCKED && new_proc->state != STOPPED,
+                   "Scheduled process that should not be running" );
     if( new_proc != get_current_process() ) {
         // Set this before the context switch since it is on the stack
         pcb_t* old_proc = get_current_process();
-        if( old_proc->state == EXECUTING)
+        if( old_proc->state == EXECUTING )
             old_proc->state = READY;
         current_process = new_proc->pid;
         context_switch( &new_proc->context, &old_proc->context );
-        
+
         get_current_process()->state = EXECUTING;
     }
     // Clean up terminated process
@@ -183,19 +182,19 @@ void OS_Yield()
 void schedule_blocked( list_head_t* blocked_list )
 {
     process_type_t running_type = get_current_process()->type;
-    
+
     pcb_t* highest_priority = NULL;
-    
+
     LIST_FOREACH( pcb_t, blocked_list, curr, blocked_list ) {
         KERNEL_ASSERT( highest_priority != curr, "Infinite loop" );
-        
+
         if( curr->type == DEVICE ) {
             // We are a blocked device function
             // We always take highest priority
             highest_priority = curr;
             break;
         }
-        
+
         if( curr->type == PERIODIC && periodic_is_ready( curr ) ) {
             // Only one periodic can be active at a time
             // So we are highest priority periodic
@@ -203,30 +202,30 @@ void schedule_blocked( list_head_t* blocked_list )
             highest_priority = curr;
             continue;
         }
-        
-        if ( !highest_priority || highest_priority->type < curr->type )
+
+        if( !highest_priority || highest_priority->type < curr->type )
             highest_priority = curr;
-        
+
         // We have a lower priority than a previous one
     }
-    
+
     // No blocked processes
     if( !highest_priority )
         return;
-    
+
     highest_priority->state = READY;
     // Remove the node from the blocked list
     list_remove_node( &highest_priority->blocked_list );
-    
+
     if( running_type == DEVICE )
         return; // Favour the already running device function
     else if( highest_priority->type == DEVICE )
         schedule_next_device();
     else if( running_type == PERIODIC )
         return; // If we are periodic we must be the only one with the active slot
-    else if( highest_priority->type == PERIODIC && periodic_is_ready( highest_priority ))
+    else if( highest_priority->type == PERIODIC && periodic_is_ready( highest_priority ) )
         continue_periodic(); // Give the time slot back to the periodic process
-    
+
     // We are both sporadic, or the other's time slot has expired.
     // Keep the currently running process
     KERNEL_ASSERT( running_type == SPORADIC, "Expected sporadic running type" );
@@ -236,10 +235,10 @@ void block_process( list_head_t* blocked_list, pcb_t* pcb )
 {
     pcb->state = BLOCKED;
     list_insert_tail_node( blocked_list, &pcb->blocked_list );
-    
+
     // Yield the CPU
     OS_Yield();
-        
+
     KERNEL_ASSERT( pcb->state != BLOCKED, "Blocked process was rescheduled" );
 }
 

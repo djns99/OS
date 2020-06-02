@@ -124,7 +124,7 @@ void register_handler( uint32_t irq_num, irq_handler_t handler )
     irq_handlers[ irq_num ] = handler;
 }
 
-void isr_handler( interrupt_params_t r )
+__attribute__((unused)) void isr_handler( interrupt_params_t r )
 {
     /* To print the message which defines every exception */
     const char* exception_messages[] = { "Division By Zero", "Debug", "Non Maskable Interrupt", "Breakpoint",
@@ -143,12 +143,12 @@ void isr_handler( interrupt_params_t r )
     if( r.int_no == 14 ) {
         // Page fault
         print( "Segmentation Fault for process %d at %p\nTerminating\n", get_current_process()->pid, r.eip );
-        OS_Terminate();
-        KERNEL_ASSERT( false, "Terminate returned\n" );
+//        OS_Terminate();
+//        KERNEL_ASSERT( false, "Terminate returned\n" );
     }
 }
 
-void irq_handler( interrupt_params_t r )
+__attribute__((unused)) void irq_handler( interrupt_params_t r )
 {
     send_eoi( r.int_no );
 

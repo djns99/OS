@@ -34,7 +34,7 @@ void free_periodic( pcb_t* pcb )
 void yield_periodic()
 {
     // If we are blocked we want the CPU back
-    if( get_current_process()->state != BLOCKED)
+    if( get_current_process()->state != BLOCKED )
         yielded = true;
 }
 
@@ -70,15 +70,15 @@ bool schedule_next_periodic()
     const periodic_name_t scheduled_process = PPP[ ppp_index ];
     yielded = scheduled_process == IDLE || periodic_pool[ scheduled_process ] == NULL;
     const bool blocked = periodic_pool[ scheduled_process ] && periodic_pool[ scheduled_process ]->state == BLOCKED;
-    if( !yielded && !blocked )
-    {
+    if( !yielded && !blocked ) {
         sched_common( periodic_pool[ scheduled_process ] );
         return true;
     }
     return false;
 }
 
-bool periodic_is_ready( pcb_t* pcb ) {
+bool periodic_is_ready( pcb_t* pcb )
+{
     const periodic_name_t scheduled_process = PPP[ ppp_index ];
     return scheduled_process != IDLE && periodic_pool[ scheduled_process ] == pcb;
 }
@@ -91,5 +91,6 @@ bool init_periodic( pcb_t* pcb, uint32_t n )
 
     // Allocate the pool entry
     periodic_pool[ n ] = pcb;
+    pcb->periodic_name = n;
     return true;
 }

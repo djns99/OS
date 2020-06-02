@@ -5,37 +5,27 @@
 
 void running_a_bunch()
 {
-    print("ENTER THE GATES\n");
     int arg = OS_GetParam();
-    for( int i = 0; i < 200000000; i += 2 ) {
-        i--;
-        if (i % 10000000 == 0) {
-            print("%d: %d\n", arg,i);
-        }
-    }
+    print("%d: Running\n", arg);
 
-    if (arg == 3) {
-        OS_Create( (void ( * )( void )) running_a_bunch, 4, PERIODIC, 4);
-    } else if (arg == 4) {
+    if (arg == 1)
+        OS_Create( (void ( * )( void )) running_a_bunch, 2, PERIODIC, 2);
+    else if(arg == 2)
         OS_Create( (void ( * )( void )) running_a_bunch, 3, PERIODIC, 3);
-    }
+    else if(arg == 3)
+        OS_Create( (void ( * )( void )) running_a_bunch, 4, PERIODIC, 4);
     OS_Signal(HOST_NOTIFY_SEM_SCHEDULING);
+    
+    print("Periodic %d done\n", arg);
 }
 
 bool test_process_scheduling()
 {
-    OS_InitSem(HOST_NOTIFY_SEM_SCHEDULING, 1);
-    for( int i = 0; i < 1; ++i ) {
-        OS_Wait(HOST_NOTIFY_SEM_SCHEDULING);
-    }
-    // OS_Create( (void ( * )( void )) running_a_bunch, 1, DEVICE, 10);
+    OS_InitSem(HOST_NOTIFY_SEM_SCHEDULING, -3);
     PID pid = OS_Create( (void ( * )( void )) running_a_bunch, 1, PERIODIC, 1);
     ASSERT_NE( pid, INVALIDPID );
-
-    print("%d: %d\n", 888, 90999);
+    
     OS_Yield();
-    for( int i = 0; i < 2; ++i ) {
-        OS_Wait(HOST_NOTIFY_SEM_SCHEDULING);
-    }
+    OS_Wait(HOST_NOTIFY_SEM_SCHEDULING);
     return true;
 }

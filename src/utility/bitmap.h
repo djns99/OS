@@ -20,6 +20,7 @@ void bitmap_flip_bit( bitmap_t bmp, uint32_t idx );
 
 uint32_t bitmap_count_set( bitmap_t bmp );
 uint32_t bitmap_find_first_set( bitmap_t bmp );
+uint32_t bitmap_find_first_set_from( bitmap_t bmp, uint32_t start_id );
 
 uint32_t get_bitmap_bits( bitmap_t bmp );
 

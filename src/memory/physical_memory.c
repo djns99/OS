@@ -2,11 +2,11 @@
 #include "physical_memory.h"
 #include "utility/bitmap.h"
 #include "memory.h"
-#include "virtual_memory.h"
 #include "meminfo.h"
 #include "utility/debug.h"
 
 DECLARE_VARIABLE_BITMAP( free_page_bitmap, MAX_TOTAL_NUM_PAGES );
+uint32_t last_found = 0;
 
 void init_physical_memory()
 {
@@ -30,11 +30,17 @@ void init_physical_memory()
 size_t alloc_phys_page()
 {
     disable_interrupts();
-    const uint32_t page_id = bitmap_find_first_set( free_page_bitmap );
+    retry_find:;
+    const uint32_t page_id = bitmap_find_first_set_from( free_page_bitmap, last_found );
     if( page_id == get_bitmap_bits( free_page_bitmap ) ) {
+        if( last_found ) {
+            last_found = 0;
+            goto retry_find;
+        }
         enable_interrupts();
         return NULL;
     }
+    last_found = page_id;
     bitmap_clear_bit( free_page_bitmap, page_id );
     enable_interrupts();
     return page_id_to_phys_address( page_id );

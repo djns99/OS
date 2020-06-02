@@ -39,7 +39,6 @@ typedef struct {
 
         struct {
             // Sporadic process info
-
         };
 
         struct {

@@ -54,7 +54,7 @@ void yield_device()
 bool schedule_next_device()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule device" );
-    
+
     LIST_FOREACH( pcb_t, scheduling_list, curr, &device_scheduling_list ) {
         // All the ones after this are still sleeping
         if( curr->next_wake_up > current_time_slice )
@@ -64,7 +64,7 @@ bool schedule_next_device()
         sched_common( curr );
         return true;
     }
-    
+
     // All are blocked
     return false;
 }

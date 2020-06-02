@@ -12,9 +12,10 @@ typedef struct {
 
 semaphore_t semaphore_pool[MAXSEM];
 
-void init_semaphores() {
+void init_semaphores()
+{
     for( uint32_t i = 0; i < MAXSEM; i++ )
-        init_list( &semaphore_pool[i].blocked_list );
+        init_list( &semaphore_pool[ i ].blocked_list );
 }
 
 void OS_InitSem( int s, int n )
@@ -28,7 +29,7 @@ void OS_Wait( int s )
     disable_interrupts();
 
     // Need to loop since a new process may have stolen the semaphore before any unblocked processes could wake up
-    while ( semaphore_pool[ s ].val <= 0 )
+    while( semaphore_pool[ s ].val <= 0 )
         block_process( &semaphore_pool[ s ].blocked_list, get_current_process() );
 
     semaphore_pool[ s ].val--;
@@ -42,7 +43,7 @@ void OS_Signal( int s )
     // Release semaphore
     if( ++semaphore_pool[ s ].val > 0 )
         schedule_blocked( &semaphore_pool[ s ].blocked_list );
-    
+
     enable_interrupts();
 } 
 

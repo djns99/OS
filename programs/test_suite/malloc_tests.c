@@ -1,4 +1,5 @@
 #include "memory/memory.h"
+#include "memory/meminfo.h"
 #include "utility/memops.h"
 #include "test_suite.h"
 #include "test_helper.h"
@@ -68,7 +69,7 @@ bool test_malloc_large()
 bool test_malloc_oom()
 {
     // Try one really large
-    const uint32_t alloc_size = MAX_USER_MEMORY_SIZE;
+    const uint32_t alloc_size = get_mem_size();
     uint8_t* malloc1 = (void*) OS_Malloc( alloc_size / 2 );
 
     ASSERT_NE( malloc1, NULL );

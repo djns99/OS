@@ -2,6 +2,7 @@
 #include "debug.h"
 
 #define FOREACH_WORD( bmp, loop_var ) for( uint32_t* loop_var = bmp + 1; loop_var != bmp + CEIL_DIV( bmp[ 0 ], 32 ) + 1; loop_var++ )
+#define FOREACH_WORD_FROM( bmp, loop_var, start_word ) for( uint32_t* loop_var = bmp + 1 + start_word; loop_var != bmp + CEIL_DIV( bmp[ 0 ], 32 ) + 1; loop_var++ )
 
 void init_variable_bitmap( bitmap_t bmp, uint32_t num_bits )
 {
@@ -72,6 +73,22 @@ uint32_t bitmap_find_first_set( bitmap_t bmp )
     FOREACH_WORD( bmp, word ) {
         if( *word )
             return idx + __builtin_ctz( *word );
+        idx += 32;
+    }
+    return bmp[ 0 ];
+}
+
+uint32_t bitmap_find_first_set_from( bitmap_t bmp, uint32_t start_id )
+{
+    uint32_t idx = ( start_id / 32 ) * 32;
+    FOREACH_WORD_FROM( bmp, word, ( start_id / 32 ) ) {
+        uint32_t word_val = *word;
+        while( word_val ) {
+            uint32_t res = idx + __builtin_ctz( word_val );
+            if( res >= start_id )
+                return res;
+            word_val &= ~0u << ( start_id & 31u );
+        }
         idx += 32;
     }
     return bmp[ 0 ];

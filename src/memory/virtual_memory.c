@@ -6,7 +6,6 @@
 #include "physical_memory.h"
 #include "utility/memops.h"
 
-uint32_t kernel_page_dirs = 0;
 // Final 4 MiB maps page directory
 page_directory_ref_t const curr_page_directory = (page_directory_ref_t) 0xFFFFF000u;
 page_table_t* const page_tables = (page_table_t*) MAX_ADDRESSABLE_MEMORY_SIZE;
@@ -21,12 +20,29 @@ phys_page_t** get_table_entry( uint32_t directory_entry, uint32_t table_entry )
     return page_tables[ directory_entry ] + table_entry;
 }
 
-void reload_page_table()
+//void reload_page_table()
+//{
+//    // TODO Use invlg instruction
+//    // Reload cr3 to flush updates
+//    asm volatile( "mov %%cr3, %%eax;"
+//                  "mov %%eax, %%cr3;":: : "memory" );
+//}
+
+void reload_page_table_address( uint32_t address )
 {
-    // TODO Use invlg instruction
-    // Reload cr3 to flush updates
-    asm volatile( "mov %%cr3, %%eax;"
-                  "mov %%eax, %%cr3;":: : "memory" );
+    asm volatile("invlpg (%0)"::"r"(address) : "memory");
+}
+
+void reload_page_table_page( uint32_t page_id )
+{
+    reload_page_table_address( page_id * PAGE_SIZE );
+}
+
+void reload_page_table_address_range( uint32_t start_address, uint32_t end_address )
+{
+    for( uint32_t curr_page = start_address >> PAGE_SIZE_LOG; curr_page < ( end_address >> PAGE_SIZE_LOG );
+         curr_page++ )
+        reload_page_table_page( curr_page );
 }
 
 size_t address_to_directory_entry( size_t virt_address )
@@ -60,7 +76,7 @@ void update_page_table( size_t virt_address, size_t phys_address, uint32_t flags
     // Update directory entry
     *get_table_entry( directory_entry, table_entry ) = (phys_page_t*) ( phys_address | flags );
 
-    reload_page_table();
+    reload_page_table_page( virt_address );
 
     // Wipe allocated page for security
     os_memset8( (void*) virt_address, 0x0, PAGE_SIZE );
@@ -79,7 +95,7 @@ void wipe_page_table_entry( size_t virt_address )
     // TODO This is needed
     const size_t phys_page = (size_t) page_tables[ directory_entry ][ table_entry ] & PAGE_MASK;
     page_tables[ directory_entry ][ table_entry ] = 0x0;
-    reload_page_table();
+    reload_page_table_page( virt_address );
 
     // Free the page
     free_phys_page( phys_page );
@@ -97,11 +113,14 @@ bool alloc_directory_entry( uint32_t directory_entry, uint32_t flags )
     KERNEL_ASSERT( ( phys_address % PAGE_SIZE ) == 0, "Physical address is not aligned to a page" );
     // Update the directory to point to new entry
     curr_page_directory[ directory_entry ] = (page_table_ref_t) ( phys_address | flags );
-    reload_page_table();
+    reload_page_table_address_range( directory_entry * PAGE_TABLE_BYTES_ADDRESSED,
+                                     directory_entry * PAGE_TABLE_BYTES_ADDRESSED + PAGE_TABLE_BYTES_ADDRESSED - 1 );
+    reload_page_table_page( (uint32_t) get_page_table( directory_entry ) >> PAGE_SIZE_LOG );
 
     // Wipe self mapped entry
     os_memset8( (void*) get_page_table( directory_entry ), 0x0, PAGE_SIZE );
-    reload_page_table();
+    reload_page_table_address_range( directory_entry * PAGE_TABLE_BYTES_ADDRESSED,
+                                     directory_entry * PAGE_TABLE_BYTES_ADDRESSED + PAGE_TABLE_BYTES_ADDRESSED - 1 );
 
     return true;
 }
@@ -184,6 +203,7 @@ bool alloc_page_at_address( void* virt_address_ptr, uint32_t flags )
     size_t phys_address = alloc_phys_page();
     if( !phys_address )
         return false;
+
     update_page_table( virt_address, phys_address, flags );
     return true;
 }
@@ -247,7 +267,7 @@ void alloc_stack( page_directory_ref_t page_dir, size_t stack_size )
 
     // Wipe local mapping for the directory entry
     *page_directory_map_entry = NULL;
-    reload_page_table();
+    reload_page_table_address_range( MAX_USER_MEMORY_SIZE - stack_size, MAX_USER_MEMORY_SIZE - 1 );
 
     // At this point the page_dir will point to a page table with many physical pages
     // It contains the only reference to those pages
@@ -283,7 +303,7 @@ size_t init_new_process_address_space( size_t stack_size )
     // Do NOT call free_page since we want to keep our physical page
     // This was just a scratch space for setting up, new process should load the new entry into cr3 when ready
     *page_table_entry = 0x0;
-    reload_page_table();
+    reload_page_table_address( (uint32_t) new_directory );
 
     return phys_page;
 }
@@ -311,12 +331,12 @@ bool free_process_memory( size_t page_dir_phys_addr )
     KERNEL_ASSERT( *dir_page_table_entry == NULL, "Allocated non-NULL virtual address" );
     *dir_page_table_entry = (phys_page_t*) ( (size_t) page_dir_phys_addr |
                                              ( PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) );
-    reload_page_table();
+    reload_page_table_address( (uint32_t) page_dir );
 
     page_table_ref_t page_tab = (page_table_ref_t) allocate_scratch_virt_page();
     if( !page_tab ) {
         *dir_page_table_entry = NULL;
-        reload_page_table();
+        reload_page_table_address( (uint32_t) page_dir );
         return false;
     }
 
@@ -332,7 +352,7 @@ bool free_process_memory( size_t page_dir_phys_addr )
 
         const size_t phys_addr = (size_t) page_dir[ dir_ent ] & PAGE_MASK;
         *tab_page_table_entry = (phys_page_t*) ( phys_addr | ( PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG ) );
-        reload_page_table();
+        reload_page_table_address( (uint32_t) page_tab );
 
         // Free any pages still allocated in the page table
         free_page_table_memory( page_tab );
@@ -346,7 +366,8 @@ bool free_process_memory( size_t page_dir_phys_addr )
     // Clear page entries we allocated
     *dir_page_table_entry = NULL;
     *tab_page_table_entry = NULL;
-    reload_page_table();
+    reload_page_table_address( (uint32_t) page_tab );
+    reload_page_table_address( (uint32_t) page_dir );
 
     // Free the actual page directory page
     free_phys_page( page_dir_phys_addr );
@@ -365,8 +386,6 @@ bool cleanup_process_address_space( size_t page_dir_phys_addr )
 void init_virtual_memory()
 {
     const uint32_t start_root_entry = (size_t) get_kernel_start() / PAGE_TABLE_BYTES_ADDRESSED;
-    kernel_page_dirs = PAGE_TABLE_NUM_ENTRIES - start_root_entry;
-
     for( uint32_t i = start_root_entry; i < PAGE_TABLE_NUM_ENTRIES - 1; i++ ) {
         // Allocate all kernel pages in the root page directory so they will be shared by all users
         if( !page_directory_entry_is_valid( i ) ) {

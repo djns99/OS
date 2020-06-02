@@ -4,25 +4,25 @@
 #include "test_suite/test_suite.h"
 
 static test_t test_suite[] = {
-//        // Malloc tests
-//        { .name = "Small Malloc Tests", .function = test_malloc_small },
-//        { .name = "Large Malloc Tests", .function = test_malloc_large },
-//        { .name = "OOM Malloc Tests", .function = test_malloc_oom },
-//        { .name = "Many Malloc Tests", .function = test_malloc_many },
-//        { .name = "Variable Malloc Tests", .function = test_malloc_variable },
-//        { .name = "Fill Malloc Tests", .function = test_malloc_fill },
-//
-//        // Semaphore tests
-//        { .name = "Mutual Exclusion Semaphore Tests", .function = test_semaphore_mutex },
-//        { .name = "N-Way Exclusion Semaphore Tests", .function = test_semaphore_n_blocked },
-//
-//        // FIFO
-//        { .name = "SPSC FIFO Tests", .function = test_spsc_fifo },
-//        { .name = "MPSC FIFO Tests", .function = test_mpsc_fifo },
-//        { .name = "MPMC FIFO Tests", .function = test_mpmc_fifo },
+        // Malloc tests
+        { .name = "Small Malloc Tests", .function = test_malloc_small },
+        { .name = "Large Malloc Tests", .function = test_malloc_large },
+        { .name = "OOM Malloc Tests", .function = test_malloc_oom },
+        { .name = "Many Malloc Tests", .function = test_malloc_many },
+        { .name = "Variable Malloc Tests", .function = test_malloc_variable },
+        { .name = "Fill Malloc Tests", .function = test_malloc_fill },
+
+        // Semaphore tests
+        { .name = "Mutual Exclusion Semaphore Tests", .function = test_semaphore_mutex },
+        { .name = "N-Way Exclusion Semaphore Tests", .function = test_semaphore_n_blocked },
+
+        // FIFO
+        { .name = "SPSC FIFO Tests", .function = test_spsc_fifo },
+        { .name = "MPSC FIFO Tests", .function = test_mpsc_fifo },
+        { .name = "MPMC FIFO Tests", .function = test_mpmc_fifo },
 
         // Process Scheduling
-        { .name = "Process Scheduling Tests", .function = test_process_scheduling },
+//        { .name = "Process Scheduling Tests", .function = test_process_scheduling },
         
         // End
 };

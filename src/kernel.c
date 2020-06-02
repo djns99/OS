@@ -18,7 +18,7 @@ void OS_Init()
     clear_screen();
 
     init_idt();
-    init_timer( 1000 );
+    init_timer( 10000 );
     init_keyboard();
     OS_InitMemory();
 

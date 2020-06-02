@@ -15,17 +15,17 @@ void schedule_sporadic()
 
     pcb_t* new_proc = LIST_GET_FIRST( pcb_t, scheduling_list, &sporadic_scheduling_list );
     pcb_t* const original_head = new_proc;
-    while ( new_proc && new_proc->state == BLOCKED ) {
+    while( new_proc && new_proc->state == BLOCKED ) {
         // Still blocked advance the head
         list_advance_head( &sporadic_scheduling_list );
         new_proc = LIST_GET_FIRST( pcb_t, scheduling_list, &sporadic_scheduling_list );
         // All are blocked
         if( new_proc == original_head )
             break;
-    } 
+    }
 
     KERNEL_ASSERT( !new_proc || new_proc->state != STOPPED, "Stopped process was still in scheduling list" );
-    
+
     if( !new_proc || new_proc->state == BLOCKED )
         sched_common( &idle_pcb );
     else

@@ -107,7 +107,7 @@ heap_free_res_t insert_free_list( virtual_heap_t* heap, void* addr_ptr, size_t s
         return heap_free_oom;
 
     free_new_range( heap, me );
-    
+
     // Insert into list
     if( !prev )
         list_insert_head_node( &heap->free_list, &me->list_node );
