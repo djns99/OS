@@ -22,7 +22,7 @@ static test_t test_suite[] = {
         { .name = "MPMC FIFO Tests", .function = test_mpmc_fifo },
 
         // Process Scheduling
-//        { .name = "Process Scheduling Tests", .function = test_process_scheduling },
+        // { .name = "Process Scheduling Tests", .function = test_process_scheduling },
         
         // End
 };

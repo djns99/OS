@@ -35,4 +35,6 @@ static inline uint8_t os_log2_up( uint32_t val )
 
 #define CEIL_DIV( a, b ) ( ( a + b - 1 ) / b )
 
+#define MIN( a, b ) ( (a) < (b) ) ? (a) : (b)
+
 #endif //OS_MATH_H

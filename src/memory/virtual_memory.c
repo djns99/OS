@@ -75,11 +75,6 @@ void update_page_table( size_t virt_address, size_t phys_address, uint32_t flags
 
     // Update directory entry
     *get_table_entry( directory_entry, table_entry ) = (phys_page_t*) ( phys_address | flags );
-
-    reload_page_table_page( virt_address );
-
-    // Wipe allocated page for security
-    os_memset8( (void*) virt_address, 0x0, PAGE_SIZE );
 }
 
 void wipe_page_table_entry( size_t virt_address )
@@ -95,7 +90,6 @@ void wipe_page_table_entry( size_t virt_address )
     // TODO This is needed
     const size_t phys_page = (size_t) page_tables[ directory_entry ][ table_entry ] & PAGE_MASK;
     page_tables[ directory_entry ][ table_entry ] = 0x0;
-    reload_page_table_page( virt_address );
 
     // Free the page
     free_phys_page( phys_page );
@@ -174,20 +168,6 @@ void* allocate_scratch_virt_page()
     return page_dir;
 }
 
-
-/*
- * Public functions
- */
-void* alloc_any_virtual_page( uint32_t flags )
-{
-    void* virt_address = allocate_scratch_virt_page();
-    if( virt_address == NULL )
-        return NULL;
-    if( !alloc_page_at_address( virt_address, flags ) )
-        return NULL;
-    return virt_address;
-}
-
 bool alloc_page_at_address( void* virt_address_ptr, uint32_t flags )
 {
     size_t virt_address = (size_t) virt_address_ptr;
@@ -206,6 +186,16 @@ bool alloc_page_at_address( void* virt_address_ptr, uint32_t flags )
 
     update_page_table( virt_address, phys_address, flags );
     return true;
+}
+
+void* alloc_any_virtual_page( uint32_t flags )
+{
+    void* virt_address = allocate_scratch_virt_page();
+    if( virt_address == NULL )
+        return NULL;
+    if( !alloc_page_at_address( virt_address, flags ) )
+        return NULL;
+    return virt_address;
 }
 
 bool kalloc_page_at_address( void* virt_address_ptr, uint32_t flags )
@@ -236,6 +226,69 @@ void kfree_page( void* page )
 {
     KERNEL_ASSERT( (size_t) page >= KERNEL_VIRTUAL_BASE, "Page is not in kernel heap" );
     wipe_page_table_entry( (size_t) page );
+}
+
+/*
+ * Public functions
+ */
+bool alloc_address_range( void* start_address, uint32_t num_pages, uint32_t flags )
+{
+    // Allocate pool
+    for( uint32_t i = 0; i < num_pages; i++ ) {
+        if( !alloc_page_at_address( start_address + i * PAGE_SIZE, flags ) ) {
+            // Free any pages we allocated
+            for( uint32_t j = 0; j < i; j++ )
+                free_page( start_address + j * PAGE_SIZE );
+
+            return false;
+        }
+    }
+
+    // Reload the TLB
+    reload_page_table_address_range( (uint32_t) start_address, (uint32_t) start_address + num_pages * PAGE_SIZE );
+
+    // Wipe allocated pages for security
+    os_memset8( start_address, 0x0, num_pages * PAGE_SIZE );
+
+    return true;
+}
+
+bool kalloc_address_range( void* start_address, uint32_t num_pages, uint32_t flags )
+{
+    // Allocate pool
+    for( uint32_t i = 0; i < num_pages; i++ ) {
+        if( !kalloc_page_at_address( start_address + i * PAGE_SIZE, flags ) ) {
+            // Free any pages we allocated
+            for( uint32_t j = 0; j < i; j++ )
+                kfree_page( start_address + j * PAGE_SIZE );
+
+            return false;
+        }
+    }
+
+    // Reload the TLB
+    reload_page_table_address_range( (uint32_t) start_address, (uint32_t) start_address + num_pages * PAGE_SIZE );
+
+    // Wipe allocated pages for security
+    os_memset8( start_address, 0x0, num_pages * PAGE_SIZE );
+
+    return true;
+}
+
+void free_address_range( void* address, uint32_t num_pages )
+{
+    for( uint32_t i = 0; i < num_pages; i++ )
+        free_page( address + i * PAGE_SIZE );
+
+    reload_page_table_address_range( (uint32_t) address, (uint32_t) address + num_pages * PAGE_SIZE );
+}
+
+void kfree_address_range( void* address, uint32_t num_pages )
+{
+    for( uint32_t i = 0; i < num_pages; i++ )
+        kfree_page( address + i * PAGE_SIZE );
+
+    reload_page_table_address_range( (uint32_t) address, (uint32_t) address + num_pages * PAGE_SIZE );
 }
 
 void alloc_stack( page_directory_ref_t page_dir, size_t stack_size )

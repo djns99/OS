@@ -64,8 +64,8 @@ void free_new_range( virtual_heap_t* heap, range_list_entry_t* new_range )
     // Round down to last full page
     const uint32_t end_page = ( new_range->start + new_range->len ) / PAGE_SIZE;
     // Loop through all freed pages
-    for( uint32_t i = start_page; i < end_page; i++ )
-        heap->page_free_func( (void*) ( i * PAGE_SIZE ) );
+    if( end_page > start_page )
+        heap->page_free_func( (void*) ( start_page * PAGE_SIZE ), ( end_page - start_page ) );
 }
 
 void merge_free_ranges( virtual_heap_t* heap, range_list_entry_t* first, range_list_entry_t* second )
@@ -77,7 +77,7 @@ void merge_free_ranges( virtual_heap_t* heap, range_list_entry_t* first, range_l
     if( start_page != join_page && end_page != join_page ) {
         // Free border page if it was split between both entries
         if( second->start % PAGE_SIZE )
-            heap->page_free_func( (void*) ( join_page * PAGE_SIZE ) );
+            heap->page_free_func( (void*) ( join_page * PAGE_SIZE ), 1 );
     }
 
     // Update first pointer
@@ -147,15 +147,8 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     const uint32_t pool_num_pages = CEIL_DIV( heap_num_pages, pool_entries_per_page );
 
     // Allocate pool
-    for( uint32_t i = 0; i < pool_num_pages; i++ ) {
-        if( !heap->page_alloc_func( start_addr + i * PAGE_SIZE, alloc_flags ) ) {
-            // Free any pages we allocated
-            for( uint32_t j = 0; j < i; j++ )
-                heap->page_free_func( start_addr + j * PAGE_SIZE );
-
-            return false;
-        }
-    }
+    if( !heap->page_alloc_func( start_addr, pool_num_pages, alloc_flags ) )
+        return false;
 
     heap->node_pool = start_addr;
     heap->pool_size = pool_num_pages * PAGE_SIZE;
@@ -194,17 +187,11 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
             const uint32_t alloc_end_page = CEIL_DIV( curr->start + real_size, PAGE_SIZE );
             // Rounds down to last unallocated page
             const uint32_t end_page = ( curr->start + curr->len ) / PAGE_SIZE;
+            KERNEL_ASSERT( end_page >= start_page && alloc_end_page >= start_page, "Underflow bug" );
 
-            // Allocate any new pages needed
-            for( uint32_t i = start_page; i < alloc_end_page && i < end_page; i++ ) {
-                if( !heap->page_alloc_func( (void*) ( i * PAGE_SIZE ), heap->alloc_flags ) ) {
-                    // Free any pages we allocated
-                    for( uint32_t j = start_page; j < i; j++ )
-                        heap->page_free_func( (void*) ( j * PAGE_SIZE ) );
-
-                    goto fail;
-                }
-            }
+            if( !heap->page_alloc_func( (void*) ( start_page * PAGE_SIZE ),
+                                        MIN( alloc_end_page - start_page, end_page - start_page ), heap->alloc_flags ) )
+                goto fail;
 
             uint16_t* actual_addr = (uint16_t*) curr->start;
             *actual_addr = size_log;

@@ -13,15 +13,13 @@ void init_virtual_memory();
 size_t init_new_process_address_space( uint32_t stack_size );
 bool cleanup_process_address_space( size_t phys_page );
 
-void* alloc_any_virtual_page( uint32_t flags );
-bool alloc_page_at_address( void* address, uint32_t flags );
+bool alloc_address_range( void* address, uint32_t num_pages, uint32_t flags );
 
 void* kernel_heap_start();
 void* kernel_heap_end();
-bool kalloc_page_at_address( void* address, uint32_t flags );
+bool kalloc_address_range( void* address, uint32_t num_pages, uint32_t flags );
 
-void free_page( void* page );
-void kfree_page( void* page );
-
+void free_address_range( void* address, uint32_t num_pages );
+void kfree_address_range( void* address, uint32_t num_pages );
 
 #endif //OS_VIRTUAL_MEMORY_H

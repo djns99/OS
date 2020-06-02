@@ -3,8 +3,8 @@
 #include "utility/types.h"
 #include "utility/list.h"
 
-typedef bool(* page_alloc_func_t)( void*, uint32_t );
-typedef void(* page_free_func_t)( void* );
+typedef bool(* page_alloc_func_t)( void*, uint32_t, uint32_t );
+typedef void(* page_free_func_t)( void*, uint32_t );
 
 typedef struct {
     size_t start;

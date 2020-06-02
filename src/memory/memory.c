@@ -18,7 +18,7 @@ void OS_InitMemory()
 void process_init_memory( pcb_t* pcb )
 {
     init_virtual_heap( &pcb->heap, (void*) PAGE_SIZE, (void*) ( MAX_USER_MEMORY_SIZE - pcb->stack_size ),
-                       alloc_page_at_address, free_page,
+                       &alloc_address_range, &free_address_range,
                        PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
 }
 
