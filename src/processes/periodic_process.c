@@ -86,7 +86,7 @@ bool periodic_is_ready( pcb_t* pcb )
 bool init_periodic( pcb_t* pcb, uint32_t n )
 {
     // Check if process with name already exists
-    if( periodic_pool[ n ] != NULL )
+    if( n > MAXPROCESS || periodic_pool[ n ] != NULL )
         return false;
 
     // Allocate the pool entry

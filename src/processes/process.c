@@ -6,6 +6,7 @@
 #include "kernel.h"
 #include "utility/types.h"
 #include "process_internal.h"
+#include "processes/syscall.h"
 
 #define DEFAULT_STACK_SIZE 1024*1024
 
@@ -24,18 +25,7 @@ void register_entry_proc()
     idle_pcb.pid = IDLE;
     idle_pcb.type = PERIODIC; // TODO Is this correct?
     idle_pcb.state = EXECUTING;
-    idle_pcb.interrupt_disables = 1; // Start from 1 
-}
-
-void init_processes()
-{
-    KERNEL_ASSERT( INVALIDPID == 0, "Invalid pid is expected to be 0" );
-    KERNEL_ASSERT( current_process == IDLE, "Did not register the entry process! Do this first" );
-    os_memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
-    init_list( &stopped_processes );
-    init_device_state();
-    init_sporadic_state();
-    init_periodic_state();
+    idle_pcb.interrupt_disables = 1; // Start from 1
 }
 
 pcb_t* alloc_pcb()
@@ -117,19 +107,6 @@ void free_process( pcb_t* pcb )
     }
 }
 
-void OS_Terminate()
-{
-    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
-    disable_interrupts();
-    pcb_t* pcb = get_current_process();
-    free_process( pcb );
-
-    OS_Yield(); // Yield the CPU to another process
-    // We should never be rescheduled
-    KERNEL_ASSERT( false, "Should never reschedule terminated process" );
-    enable_interrupts();
-}
-
 void timer_preempt( uint64_t current_tick )
 {
     current_time_slice = current_tick;
@@ -155,28 +132,6 @@ pcb_t* get_current_process()
     if( current_process == IDLE )
         return &idle_pcb;
     return &pcb_pool[ current_process - 1 ];
-}
-
-void OS_Yield()
-{
-    disable_interrupts();
-    switch( get_current_process()->type ) {
-        case PERIODIC:
-            yield_periodic();
-            schedule_sporadic(); // Rerun last sporadic process
-            break;
-        case SPORADIC:
-            yield_sporadic();
-            schedule_sporadic(); // Advance head and schedule sporadic
-            break;
-        case DEVICE:
-            yield_device();
-            if( !schedule_next_device() ) // Run colliding device process
-                if( !continue_periodic() ) // Run preempted periodic process
-                    schedule_sporadic(); // Run sporadic process 
-            break;
-    }
-    enable_interrupts();
 }
 
 void schedule_blocked( list_head_t* blocked_list )
@@ -242,45 +197,118 @@ void block_process( list_head_t* blocked_list, pcb_t* pcb )
     KERNEL_ASSERT( pcb->state != BLOCKED, "Blocked process was rescheduled" );
 }
 
-int OS_GetParam()
+int get_param_syscall( uint32_t res, uint32_t _2 )
 {
-    return get_current_process()->arg;
+    if( !res )
+        return SYS_INVLARG;
+    *(int*)res = get_current_process()->arg;
+    return SYS_SUCCESS;
 }
 
-/* Process Management primitives */
-PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
+int OS_GetParam()
+{
+    int param;
+    int sys_res = syscall( SYSCALL_PROCESS_GET_PARAM, (uint32_t)&param, 0 );
+    PROCESS_WARNING( sys_res == SYS_SUCCESS, "Error getting process param" );
+    return param;
+}
+
+int terminate_syscall()
 {
     disable_interrupts();
-    pcb_t* pcb = alloc_pcb();
-    if( pcb == NULL )
-        return INVALIDPID;
+    pcb_t* pcb = get_current_process();
+    free_process( pcb );
 
-    pcb->type = level;
-    pcb->arg = arg;
-    pcb->function = f;
+    OS_Yield(); // Yield the CPU to another process
+    // We should never be rescheduled
+    KERNEL_ASSERT( false, "Should never reschedule terminated process" );
+    enable_interrupts();
+    return SYS_FAILED;
+}
+
+void OS_Terminate()
+{
+    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
+    syscall( SYSCALL_PROCESS_TERMINATE, 0, 0 );
+    KERNEL_ASSERT( false, "Terminate should never return" );
+}
+
+int yield_syscall()
+{
+    disable_interrupts();
+    switch( get_current_process()->type ) {
+        case PERIODIC:
+            yield_periodic();
+            schedule_sporadic(); // Rerun last sporadic process
+            break;
+        case SPORADIC:
+            yield_sporadic();
+            schedule_sporadic(); // Advance head and schedule sporadic
+            break;
+        case DEVICE:
+            yield_device();
+            if( !schedule_next_device() ) // Run colliding device process
+                if( !continue_periodic() ) // Run preempted periodic process
+                    schedule_sporadic(); // Run sporadic process
+            break;
+    }
+    enable_interrupts();
+    return SYS_SUCCESS;
+}
+
+void OS_Yield()
+{
+    int res = syscall( SYSCALL_PROCESS_YIELD, 0, 0 );
+    KERNEL_WARNING( res == SYS_SUCCESS, "Error yielding process" );
+}
+
+typedef struct {
+    void (*f)();
+    int arg;
+    uint32_t level;
+    uint32_t n;
+    PID out_pid;
+} create_syscall_args_t;
+
+int create_syscall( uint32_t param, uint32_t _ )
+{
+    create_syscall_args_t* args = (create_syscall_args_t*)param;
+    if(!args || !args->f)
+        return SYS_INVLARG;
+
+    disable_interrupts();
+    pcb_t* pcb = alloc_pcb();
+    if( pcb == NULL ) {
+        enable_interrupts();
+        return SYS_FAILED;
+    }
+
+    pcb->type = args->level;
+    pcb->arg = args->arg;
+    pcb->function = args->f;
     pcb->interrupt_disables = 1;
     pcb->stack_size = DEFAULT_STACK_SIZE;
     pcb->context.cr3 = NULL;
     pcb->context.stack = NULL;
     pcb->state = READY;
 
-    bool res;
-    switch( level ) {
+    bool res = false;
+    switch( args->level ) {
         case PERIODIC:
-            res = init_periodic( pcb, n );
+            res = init_periodic( pcb, args->n );
             break;
         case SPORADIC:
-            res = init_sporadic( pcb, n );
+            res = init_sporadic( pcb, args->n );
             break;
         case DEVICE:
-            res = init_device( pcb, n );
+            res = init_device( pcb, args->n );
             break;
     }
 
     if( !res ) {
         free_common( pcb );
         enable_interrupts();
-        return INVALIDPID;
+        return SYS_FAILED;
     }
 
     pcb->context.cr3 = init_new_process_address_space( pcb->stack_size );
@@ -288,7 +316,7 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
     if( !pcb->context.cr3 ) {
         free_process( pcb );
         enable_interrupts();
-        return INVALIDPID;
+        return SYS_FAILED;
     }
 
     // TODO Does this have to be -16?
@@ -298,7 +326,35 @@ PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
 
     enable_interrupts();
 
-    return pcb->pid;
+    args->out_pid = pcb->pid;
+    return SYS_SUCCESS;
+}
+
+/* Process Management primitives */
+PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
+{
+    if(!f)
+        return INVALIDPID;
+    create_syscall_args_t args = { f, arg, level, n, INVALIDPID };
+    int res = syscall( SYSCALL_PROCESS_CREATE, (uint32_t)&args, 0 );
+    KERNEL_WARNING( res == SYS_SUCCESS || res == SYS_FAILED, "Error while creating child process" );
+    return res == SYS_SUCCESS ? args.out_pid : INVALIDPID;
+}
+
+void init_processes()
+{
+    KERNEL_ASSERT( INVALIDPID == 0, "Invalid pid is expected to be 0" );
+    KERNEL_ASSERT( current_process == IDLE, "Did not register the entry process! Do this first" );
+    os_memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
+    init_list( &stopped_processes );
+    init_device_state();
+    init_sporadic_state();
+    init_periodic_state();
+
+    register_syscall_handler( SYSCALL_PROCESS_GET_PARAM, &get_param_syscall );
+    register_syscall_handler( SYSCALL_PROCESS_TERMINATE, &terminate_syscall );
+    register_syscall_handler( SYSCALL_PROCESS_YIELD, &yield_syscall );
+    register_syscall_handler( SYSCALL_PROCESS_CREATE, &create_syscall );
 }
 
 __attribute__((unused)) void new_proc_entry_point( void* start_param )
@@ -306,7 +362,7 @@ __attribute__((unused)) void new_proc_entry_point( void* start_param )
     pcb_t* pcb = (pcb_t*) start_param;
     current_process = pcb->pid;
     KERNEL_ASSERT( pcb->interrupt_disables == 1, "Process started with wrong number of interrupts" );
-    // We will have interrupt disabled when we start 
+    // We will have interrupt disabled when we start
     enable_interrupts();
 
     // Initialise our memory

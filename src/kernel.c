@@ -18,6 +18,8 @@ void OS_Init()
     clear_screen();
 
     init_idt();
+    init_syscall();
+
     init_timer( 10000 );
     init_keyboard();
     OS_InitMemory();
@@ -25,8 +27,6 @@ void OS_Init()
     init_fifos();
     init_semaphores();
     init_processes();
-    init_syscall();
-//    syscall( NUM_SYSCALLS );
 
     init_interrupts();
 }
@@ -49,7 +49,7 @@ void OS_Start()
     while( true ) {
         // Yield to any new processes
         OS_Yield();
-        // Wait until an interrupt comes in and then pass control to new process 
+        // Wait until an interrupt comes in and then pass control to new process
         asm("hlt");
     }
 }

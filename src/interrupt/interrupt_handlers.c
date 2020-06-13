@@ -57,6 +57,8 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
+extern void syscall_irq();
+
 typedef struct {
     uint16_t low_ptr;
     uint16_t selector;
@@ -112,6 +114,8 @@ void init_idt()
         register_internal_handler( num_isr + i, irq_funcs[ i ], 0x8E );
     }
 
+    register_internal_handler( SYSCALL_IRQ, &syscall_irq, 0x8F );
+
     idt_reg.limit = sizeof( idt ) - 1;
     idt_reg.base = (uint32_t) &idt;
     asm("lidt (%0)"::"r" (&idt_reg));
@@ -138,13 +142,16 @@ __attribute__((unused)) void isr_handler( interrupt_params_t r )
                                          "Reserved", "Reserved", "Reserved", "Reserved", "Reserved", "Reserved",
                                          "Reserved" };
 
-    print( "Received interrupt: %d (%s)\n", r.int_no, exception_messages[ r.int_no ] );
 
     if( r.int_no == 14 ) {
         // Page fault
         print( "Segmentation Fault for process %d at %p\nTerminating\n", get_current_process()->pid, r.eip );
-//        OS_Terminate();
-//        KERNEL_ASSERT( false, "Terminate returned\n" );
+        OS_Terminate();
+        KERNEL_ASSERT( false, "Terminate returned\n" );
+    } else {
+        print( "Process %d received '%s' at %p\nTerminating\n", get_current_process()->pid, exception_messages[ r.int_no ], r.eip );
+        OS_Terminate();
+        KERNEL_ASSERT( false, "Terminate returned\n" );
     }
 }
 
