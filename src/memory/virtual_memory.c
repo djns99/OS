@@ -110,7 +110,7 @@ bool alloc_directory_entry( uint32_t directory_entry, uint32_t flags )
     reload_page_table_address( (uint32_t) get_page_table( directory_entry ) );
 
     // Wipe self mapped entry
-    os_memset8( (void*) get_page_table( directory_entry ), 0x0, PAGE_SIZE );
+    memset8( (void*) get_page_table( directory_entry ), 0x0, PAGE_SIZE );
 
     return true;
 }
@@ -244,7 +244,7 @@ bool alloc_address_range( void* start_address, uint32_t num_pages, uint32_t flag
     reload_page_table_address_range( (uint32_t) start_address, (uint32_t) start_address + num_pages * PAGE_SIZE );
 
     // Wipe allocated pages for security
-    os_memset8( start_address, 0x0, num_pages * PAGE_SIZE );
+    memset8( start_address, 0x0, num_pages * PAGE_SIZE );
 
     return true;
 }
@@ -266,7 +266,7 @@ bool kalloc_address_range( void* start_address, uint32_t num_pages, uint32_t fla
     reload_page_table_address_range( (uint32_t) start_address, (uint32_t) start_address + num_pages * PAGE_SIZE );
 
     // Wipe allocated pages for security
-    os_memset8( start_address, 0x0, num_pages * PAGE_SIZE );
+    memset8( start_address, 0x0, num_pages * PAGE_SIZE );
 
     return true;
 }
@@ -297,7 +297,7 @@ void alloc_stack( page_directory_ref_t page_dir, size_t stack_size )
                                                               address_to_table_entry( (size_t) scratch_page_table ) );
     const size_t phys_page = ( (size_t) *page_directory_map_entry ) & PAGE_MASK;
 
-    os_memset8( scratch_page_table, 0x0, PAGE_SIZE );
+    memset8( scratch_page_table, 0x0, PAGE_SIZE );
 
     const uint32_t dir_ent = address_to_directory_entry( MAX_USER_MEMORY_SIZE - PAGE_SIZE );
     page_dir[ dir_ent ] = (page_table_ref_t) ( phys_page | ( PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG |
@@ -333,10 +333,10 @@ size_t init_new_process_address_space( size_t stack_size )
     KERNEL_ASSERT( kernel_start_entry < PAGE_TABLE_NUM_ENTRIES, "Kernel started outside page directory!" );
 
     // All non kernel pages start zeroed
-    os_memset8( new_directory, 0x0, kernel_start_entry * sizeof( page_table_ref_t ) );
+    memset8( new_directory, 0x0, kernel_start_entry * sizeof( page_table_ref_t ) );
     // Memcpy the kernel pages from the root directory
-    os_memcpy( new_directory + kernel_start_entry, curr_page_directory + kernel_start_entry,
-               ( PAGE_TABLE_NUM_ENTRIES - kernel_start_entry ) * sizeof( page_table_ref_t ) );
+    memcpy( new_directory + kernel_start_entry, curr_page_directory + kernel_start_entry,
+            ( PAGE_TABLE_NUM_ENTRIES - kernel_start_entry ) * sizeof( page_table_ref_t ) );
 
     phys_page_t** page_table_entry = get_table_entry( address_to_directory_entry( (size_t) new_directory ),
                                                       address_to_table_entry( (size_t) new_directory ) );
@@ -451,5 +451,5 @@ void* kernel_heap_start()
 
 void* kernel_heap_end()
 {
-    return (void*) ( CEIL_DIV( MAX_ADDRESSABLE_MEMORY_SIZE, PAGE_SIZE ) * PAGE_SIZE );
+    return (void*) ( ( MAX_ADDRESSABLE_MEMORY_SIZE >> PAGE_SIZE_LOG ) * PAGE_SIZE );
 }

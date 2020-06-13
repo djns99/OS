@@ -21,6 +21,7 @@ typedef enum {
     SYSCALL_FIFO_READ,
     SYSCALL_MALLOC,
     SYSCALL_FREE,
+    SYSCALL_READ_LINE,
     SYSCALL_NUM,
 } syscall_t;
 

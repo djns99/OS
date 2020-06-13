@@ -17,7 +17,7 @@ void sleep_func()
 
 bool test_semaphore_mutex()
 {
-    os_memset8( awake, 0x0, sizeof( awake ) );
+    memset8( awake, 0x0, sizeof( awake ) );
     OS_InitSem( 0, 1 );
     OS_InitSem( HOST_NOTIFY_SEM, 0 );
 
@@ -49,7 +49,7 @@ bool test_semaphore_mutex()
 
 bool test_semaphore_n_blocked()
 {
-    os_memset8( awake, 0x0, sizeof( awake ) );
+    memset8( awake, 0x0, sizeof( awake ) );
 
     const uint32_t num_processes = MAX_TEST_PROCESSES;
     OS_InitSem( 0, num_processes / 2 );

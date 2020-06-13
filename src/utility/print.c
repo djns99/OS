@@ -42,7 +42,7 @@ void clear_range( uint32_t start, uint32_t num_chars )
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( video_memory + start, *(uint16_t*) &entry, num_chars );
+    memset16( video_memory + start, *(uint16_t*) &entry, num_chars );
 }
 
 void scroll()
@@ -50,8 +50,8 @@ void scroll()
     if( row < TEXT_MODE_HEIGHT )
         return;
     const uint32_t memcpy_lines = ( row - TEXT_MODE_HEIGHT ) + 1;
-    os_memcpy( video_memory, video_memory + TEXT_MODE_WIDTH * memcpy_lines,
-               TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ) * sizeof( video_mem_entry_t ) );
+    memcpy( video_memory, video_memory + TEXT_MODE_WIDTH * memcpy_lines,
+            TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ) * sizeof( video_mem_entry_t ) );
     clear_range( TEXT_MODE_WIDTH * ( TEXT_MODE_HEIGHT - memcpy_lines ), memcpy_lines * TEXT_MODE_WIDTH );
     row = TEXT_MODE_HEIGHT - 1;
     col = 0;
@@ -72,7 +72,7 @@ void clear_screen()
     video_mem_entry_t entry;
     entry.chr = '\0';
     entry.colour = curr_colour;
-    os_memset16( video_memory, *(uint16_t*) &entry, TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT );
+    memset16( video_memory, *(uint16_t*) &entry, TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT );
     row = 0;
     col = 0;
     update_cursor();

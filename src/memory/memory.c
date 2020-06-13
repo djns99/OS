@@ -15,14 +15,25 @@ void process_init_memory( pcb_t* pcb )
                        PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
 }
 
+void* user_malloc( uint32_t bytes )
+{
+    pcb_t* current_proc = get_current_process();
+    return virtual_heap_alloc( &current_proc->heap, bytes );
+}
+
+bool user_free( void* ptr ) {
+    pcb_t* current_proc = get_current_process();
+    heap_free_res_t res = virtual_heap_free( &current_proc->heap, (void*) ptr );
+    PROCESS_WARNING( res != heap_free_fatal, "Process tried to free an illegal address" );
+    return res == heap_free_ok;
+}
+
 int malloc_syscall( uint32_t size, uint32_t result )
 {
     if( !result )
         return SYS_INVLARG;
 
-    pcb_t* current_proc = get_current_process();
-    void* address = virtual_heap_alloc( &current_proc->heap, size );
-    *(MEMORY*)result = (MEMORY) address;
+    *(MEMORY*)result = (MEMORY) user_malloc( size );
     return SYS_SUCCESS;
 }
 
@@ -31,13 +42,9 @@ int free_syscall( uint32_t ptr, uint32_t result )
     if( !result || !ptr )
         return SYS_INVLARG;
 
-    pcb_t* current_proc = get_current_process();
-    heap_free_res_t res = virtual_heap_free( &current_proc->heap, (void*) ptr );
-    PROCESS_WARNING( res != heap_free_oom, "Process had insufficient resources to free memory" );
-    *(bool*)result = res == heap_free_ok;
+    *(bool*)result = user_free( (void*) ptr );
     return SYS_SUCCESS;
 }
-
 
 MEMORY OS_Malloc( int size )
 {

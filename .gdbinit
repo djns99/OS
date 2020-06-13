@@ -10,6 +10,4 @@ break entry_point
 break OS_Abort
 break isr_handler
 break debug_kern_warn_break
-break interrupt_handlers.c:145
-#break fork_process
 continue

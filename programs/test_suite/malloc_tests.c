@@ -39,15 +39,15 @@ bool test_malloc_large()
     ASSERT_EQ( *malloc1, 1 );
     ASSERT_EQ( *malloc2, 2 );
 
-    os_memset8( malloc1, 0x1, alloc_size );
-    os_memset8( malloc2, 0x1, alloc_size );
+    memset8( malloc1, 0x1, alloc_size );
+    memset8( malloc2, 0x1, alloc_size );
 
     ASSERT_EQ( *malloc1, 1 );
     ASSERT_EQ( *malloc2, 1 );
-    ASSERT_TRUE( os_memcmp( malloc1, malloc2, alloc_size ) );
+    ASSERT_TRUE( memcmp( malloc1, malloc2, alloc_size ) );
 
-    os_memset8( malloc2, 0x2, alloc_size );
-    ASSERT_FALSE( os_memcmp( malloc1, malloc2, alloc_size ) );
+    memset8( malloc2, 0x2, alloc_size );
+    ASSERT_FALSE( memcmp( malloc1, malloc2, alloc_size ) );
 
     OS_Free( (MEMORY) malloc1 );
     OS_Free( (MEMORY) malloc2 );

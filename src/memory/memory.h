@@ -21,9 +21,9 @@ typedef page_table_ref_t* page_directory_ref_t;
 
 // Kernel gets upper quarter
 #define KERNEL_VIRTUAL_BASE 0xC0000000u
-// Last page in virtual address space is reserved for page table so it is not addressable
-// +1 since UINT32_MAX is 1 below 4GiB 
 #define MAX_PHYSICAL_MEMORY_SIZE (UINT32_MAX)
+// Last page in virtual address space is reserved for page table so it is not addressable
+// +1 since UINT32_MAX is 1 below 4GiB
 #define MAX_ADDRESSABLE_MEMORY_SIZE (MAX_PHYSICAL_MEMORY_SIZE - PAGE_TABLE_BYTES_ADDRESSED + 1)
 #define MAX_KERNEL_MEMORY_SIZE (MAX_ADDRESSABLE_MEMORY_SIZE - KERNEL_VIRTUAL_BASE)
 #define MAX_USER_MEMORY_SIZE (MAX_ADDRESSABLE_MEMORY_SIZE - MAX_KERNEL_MEMORY_SIZE)
@@ -32,16 +32,14 @@ typedef page_table_ref_t* page_directory_ref_t;
 #define MAX_KERNEL_NUM_PAGES (MAX_KERNEL_MEMORY_SIZE>>PAGE_SIZE_LOG)
 #define MAX_USER_NUM_PAGES (MAX_USER_MEMORY_SIZE>>PAGE_SIZE_LOG)
 
-typedef struct {
-    page_directory_ref_t page_directory;
-    list_head_t alloc_list[30];
-    list_head_t free_list;
-} process_memory_state_t;
-
+void* user_malloc( uint32_t bytes );
+bool user_free( void* ptr );
 void* kmalloc( uint32_t bytes );
-void kfree( void* );
+bool kfree( void* );
 
 // Called before the process starts
 void process_init_memory( pcb_t* );
+
+void init_kernel_memory();
 
 #endif //OS_MEMORY_H

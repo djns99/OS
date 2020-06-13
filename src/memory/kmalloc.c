@@ -23,10 +23,11 @@ void* kmalloc( uint32_t bytes )
     return allocation;
 }
 
-void kfree( void* ptr )
+bool kfree( void* ptr )
 {
     disable_interrupts();
-    bool res = virtual_heap_free( &kernel_memory_state, ptr );
+    heap_free_res_t res = virtual_heap_free( &kernel_memory_state, ptr );
     enable_interrupts();
-    KERNEL_ASSERT( res, "Illegal free in kernel" );
+    KERNEL_ASSERT( res != heap_free_fatal, "Illegal free in kernel" );
+    return res == heap_free_ok;
 }

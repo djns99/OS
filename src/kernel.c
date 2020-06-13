@@ -1,3 +1,4 @@
+#include "memory/memory.h"
 #include "sync/semaphore.h"
 #include "sync/fifo.h"
 #include "processes/syscall.h"
@@ -20,9 +21,11 @@ void OS_Init()
     init_idt();
     init_syscall();
 
+    OS_InitMemory();
+    init_kernel_memory();
+
     init_timer( 10000 );
     init_keyboard();
-    OS_InitMemory();
 
     init_fifos();
     init_semaphores();
@@ -31,14 +34,14 @@ void OS_Init()
     init_interrupts();
 }
 
-extern void test_runner();
+extern void shell();
 
 void OS_Start()
 {
     // TODO Launch shell
     // Launch initial process
     // We are the idle process
-    if( OS_Create( test_runner, 0, SPORADIC, 0 ) == INVALIDPID )
+    if( OS_Create( shell, 0, SPORADIC, 0 ) == INVALIDPID )
         print( "Failed to start initial program\nSystem will now hang.\n" );
 
     // Kick off interrupts now

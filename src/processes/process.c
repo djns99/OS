@@ -345,7 +345,7 @@ void init_processes()
 {
     KERNEL_ASSERT( INVALIDPID == 0, "Invalid pid is expected to be 0" );
     KERNEL_ASSERT( current_process == IDLE, "Did not register the entry process! Do this first" );
-    os_memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
+    memset8( pcb_pool, 0x0, sizeof( pcb_pool ) );
     init_list( &stopped_processes );
     init_device_state();
     init_sporadic_state();

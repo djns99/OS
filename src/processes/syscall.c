@@ -23,7 +23,7 @@ void init_syscall()
 {
     KERNEL_ASSERT( SYSCALL_IRQ == 0x80, "SYSCALL IRQ number did not match expected" );
     register_handler( SYSCALL_IRQ, syscall_handler );
-    os_memset8( syscalls, 0x0, sizeof( syscalls ) );
+    memset8( syscalls, 0x0, sizeof( syscalls ) );
 }
 
 int syscall( syscall_t syscall, uint32_t param1, uint32_t param2 )
