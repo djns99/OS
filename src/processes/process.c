@@ -291,6 +291,7 @@ int create_syscall( uint32_t param, uint32_t _ )
     pcb->context.cr3 = NULL;
     pcb->context.stack = NULL;
     pcb->state = READY;
+    memset8( pcb->held_semaphores, 0x0, sizeof(pcb->held_semaphores) );
 
     bool res = false;
     switch( args->level ) {

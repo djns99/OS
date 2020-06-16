@@ -2,6 +2,7 @@
 #include "kernel.h"
 #include "utility/print.h"
 #include "test_suite/test_suite.h"
+#include "sync/semaphore.h"
 
 static test_t test_suite[] = {
         // Malloc tests
@@ -23,7 +24,7 @@ static test_t test_suite[] = {
 
         // Process Scheduling
         { .name = "Process Scheduling Tests", .function = test_process_scheduling },
-        
+
         // End
 };
 
@@ -88,6 +89,10 @@ void test_watchdog()
 
 void test_runner()
 {
+    // Used relaxed compliance mode for the tests
+    semaphore_compliance_mode_t comp_mode = get_sem_compliance();
+    set_sem_compliance( RELAXED );
+
     const uint32_t num_tests = sizeof( test_suite ) / sizeof( test_t );
     if( verbose )
         print( "Running %u tests\n", num_tests );
@@ -120,8 +125,14 @@ void test_runner()
     print( "FAILED:\t%u\n", failures );
     set_fg_colour( old_col );
 
+    successes = 0;
+    failures = 0;
+
     print( "============================\n" );
 
     // Stop the watchdog
     watchdog_running = false;
+
+    // Restore the old compliance mode
+    set_sem_compliance( comp_mode );
 }
