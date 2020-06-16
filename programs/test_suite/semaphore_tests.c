@@ -1,4 +1,5 @@
 #include "utility/memops.h"
+#include "sync/semaphore.h"
 #include "test_helper.h"
 #include "test_suite.h"
 
@@ -82,6 +83,41 @@ bool test_semaphore_n_blocked()
             OS_Wait( HOST_NOTIFY_SEM );
         }
     }
+
+    return true;
+}
+
+void compliance_func()
+{
+    OS_Signal(0);
+    OS_Wait(0);
+    awake[ 0 ] = true;
+}
+
+bool test_semaphore_compliance()
+{
+    semaphore_compliance_mode_t old_mode = get_sem_compliance();
+    set_sem_compliance( STRICT );
+
+    memset8( awake, 0x0, sizeof( awake ) );
+
+    OS_InitSem(0, 1);
+    OS_InitSem(1, 1);
+    OS_Wait(0);
+
+    PID pid1 = OS_Create( &compliance_func, 0, SPORADIC, 0 );
+    ASSERT_NE( pid1, INVALIDPID );
+
+    // Yield so the thread runs
+    OS_Yield();
+    ASSERT_FALSE(awake[0]);
+
+    OS_Signal(0);
+
+    OS_Yield();
+    ASSERT_TRUE(awake[0]);
+
+    set_sem_compliance( old_mode );
 
     return true;
 }

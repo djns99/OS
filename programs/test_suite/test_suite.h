@@ -20,6 +20,7 @@ bool test_malloc_fill();
 
 bool test_semaphore_mutex();
 bool test_semaphore_n_blocked();
+bool test_semaphore_compliance();
 
 bool test_spsc_fifo();
 bool test_mpsc_fifo();

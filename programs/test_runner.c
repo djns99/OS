@@ -16,6 +16,7 @@ static test_t test_suite[] = {
         // Semaphore tests
         { .name = "Mutual Exclusion Semaphore Tests", .function = test_semaphore_mutex },
         { .name = "N-Way Exclusion Semaphore Tests", .function = test_semaphore_n_blocked },
+        { .name = "Semaphore Compliance Tests", .function = test_semaphore_compliance },
 
         // FIFO
         { .name = "SPSC FIFO Tests", .function = test_spsc_fifo },
@@ -67,16 +68,19 @@ void test_executor()
     OS_Signal( TEST_RUNNER_SEMAPHORE );
 }
 
-const uint32_t watch_dog_seconds = 10;
+const uint32_t watch_dog_seconds = 20;
 
 void test_watchdog()
 {
+    watchdog_check = false;
     while( watchdog_running ) {
         // Assume test has died
         if( watchdog_check ) {
             print( "Test has not completed within timeout\nAssuming fatal failure\n" );
             failures++;
             watchdog_check = false;
+            // Set the compliance back to relaxed in case the test modified it
+            set_sem_compliance( RELAXED );
             OS_Signal( TEST_RUNNER_SEMAPHORE );
         } else {
             watchdog_check = true;
