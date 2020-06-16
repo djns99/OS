@@ -51,16 +51,40 @@ typedef struct {
     };
 } pcb_t;
 
+/**
+ * Gets the currently running process
+ * @return The pcb for the current process
+ */
 pcb_t* get_current_process();
 
+/**
+ * Notify the process scheduling subsystem of a timer event
+ * @param current_tick The current time slice
+ */
 void timer_preempt( uint64_t current_tick );
+
+/**
+ * Init the process scheduling subsystem
+ */
 void init_processes();
+
+/**
+ * Registers the idle process to the kernel start state
+ */
 void register_entry_proc();
 
-// Chooses the highest priority process from the list and schedules it
+/**
+ * Schedule blocked process. Chooses the highest priority process from the list
+ * and schedules it if it has higher priority than the current process
+ * @param blocked_list This list of blocked processes to release
+ */
 void schedule_blocked( list_head_t* blocked_list );
 
-// Blocks the specified process on the provided list
+/**
+ * Blocks the specified process and stores it on the provided list
+ * @param blocked_list The list of processes to add to
+ * @param pcb The process being blocked
+ */
 void block_process( list_head_t* blocked_list, pcb_t* pcb );
 
 #endif //OS_PROCESS_H

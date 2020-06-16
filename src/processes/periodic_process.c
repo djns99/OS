@@ -42,10 +42,10 @@ bool continue_periodic()
 {
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule periodic" );
 
-    if( yielded )
+    if( yielded || periodic_pool[ PPP[ ppp_index ] ]->state == BLOCKED )
         return false;
 
-    sched_common( periodic_pool[ ppp_index ] );
+    sched_common( periodic_pool[ PPP[ ppp_index ] ] );
     return true;
 }
 
@@ -54,7 +54,7 @@ bool schedule_next_periodic()
     KERNEL_ASSERT( get_current_process()->interrupt_disables, "Interrupts enabled when trying to schedule periodic" );
 
     if( current_time_slice < next_periodic_start )
-        return false;
+        return continue_periodic();
 
     // Loop while we are behind
     // This will happen if a device process took more than one slot

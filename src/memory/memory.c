@@ -8,9 +8,9 @@
 #include "physical_memory.h"
 #include "processes/syscall.h"
 
-void process_init_memory( pcb_t* pcb )
+bool process_init_memory( pcb_t* pcb )
 {
-    init_virtual_heap( &pcb->heap, (void*) PAGE_SIZE, (void*) ( MAX_USER_MEMORY_SIZE - pcb->stack_size ),
+    return init_virtual_heap( &pcb->heap, (void*) PAGE_SIZE, (void*) ( MAX_USER_MEMORY_SIZE - pcb->stack_size ),
                        &alloc_address_range, &free_address_range,
                        PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
 }

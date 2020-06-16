@@ -32,14 +32,42 @@ typedef page_table_ref_t* page_directory_ref_t;
 #define MAX_KERNEL_NUM_PAGES (MAX_KERNEL_MEMORY_SIZE>>PAGE_SIZE_LOG)
 #define MAX_USER_NUM_PAGES (MAX_USER_MEMORY_SIZE>>PAGE_SIZE_LOG)
 
+/**
+ * Allocate memory from the user heap
+ * @param bytes The number of bytes to allocate
+ * @return A virtual pointer to the allocated memory, or NULL on failure
+ */
 void* user_malloc( uint32_t bytes );
+
+/**
+ * Free user memory
+ * @param ptr The pointer to free
+ * @return True if the memory was successfully freed, false otherwise
+ */
 bool user_free( void* ptr );
+/**
+ * Allocate memory from the kernel heapp
+ * @param bytes The number of bytes to allocate
+ * @return A virtual pointer to the allocated memory, or NULL on failure
+ */
 void* kmalloc( uint32_t bytes );
-bool kfree( void* );
+/**
+ * Free kernel memory
+ * @param ptr The pointer to free
+ * @return True if the memory was successfully freed, false otherwise
+ */
+bool kfree( void* ptr );
 
-// Called before the process starts
-void process_init_memory( pcb_t* );
+/**
+ * Initialises new process heap
+ * @return True if successfully init, false otherwise
+ */
+bool process_init_memory( pcb_t* );
 
-void init_kernel_memory();
+/**
+ * Initialises the kernel heap
+ * @return True if successfully init, false otherwise
+ */
+bool init_kernel_memory();
 
 #endif //OS_MEMORY_H

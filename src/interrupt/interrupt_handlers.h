@@ -28,9 +28,18 @@ typedef struct {
 
 #define SYSCALL_IRQ 0x80
 
+/**
+ * Initialises the IDT and installs gates for all the needed system and user interrupts
+ */
 void init_idt();
 
 typedef void(* irq_handler_t)( interrupt_params_t* );
+
+/**
+ * Allows a user to install an interrupt for the specified IRQ
+ * @param irq_num The IRQ number that identifies the interrupt we want to intercept
+ * @param handler The function to handle the interrupt
+ */
 void register_handler( uint32_t irq_num, irq_handler_t handler );
 
 #endif //OS_INTERRUPT_HANDLERS_H

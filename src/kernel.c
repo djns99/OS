@@ -1,3 +1,4 @@
+#include "utility/debug.h"
 #include "memory/memory.h"
 #include "sync/semaphore.h"
 #include "sync/fifo.h"
@@ -22,7 +23,8 @@ void OS_Init()
     init_syscall();
 
     OS_InitMemory();
-    init_kernel_memory();
+    bool res = init_kernel_memory();
+    KERNEL_ASSERT( res, "Failed to init kernel memory" );
 
     init_timer( 10000 );
     init_keyboard();

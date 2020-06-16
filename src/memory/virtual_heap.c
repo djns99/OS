@@ -2,6 +2,7 @@
 #include "utility/debug.h"
 #include "virtual_heap.h"
 #include "memory.h"
+#include "meminfo.h"
 
 bool realloc_pool( virtual_heap_t* heap )
 {
@@ -144,7 +145,8 @@ bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, 
     const uint32_t heap_size = end_addr - start_addr;
     const uint32_t pool_entries_per_page = PAGE_SIZE / sizeof( range_list_entry_t );
     const uint32_t heap_num_pages = heap_size >> PAGE_SIZE_LOG;
-    const uint32_t pool_num_pages = CEIL_DIV( heap_num_pages, pool_entries_per_page );
+    const uint32_t max_phys_pages = get_mem_size() >> PAGE_SIZE_LOG;
+    const uint32_t pool_num_pages = CEIL_DIV( MIN( heap_num_pages, max_phys_pages ), pool_entries_per_page );
 
     // Allocate pool
     if( !heap->page_alloc_func( start_addr, pool_num_pages, alloc_flags ) )

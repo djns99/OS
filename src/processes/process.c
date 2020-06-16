@@ -179,7 +179,7 @@ void schedule_blocked( list_head_t* blocked_list )
     else if( running_type == PERIODIC )
         return; // If we are periodic we must be the only one with the active slot
     else if( highest_priority->type == PERIODIC && periodic_is_ready( highest_priority ) )
-        continue_periodic(); // Give the time slot back to the periodic process
+        schedule_next_periodic(); // Give the time slot back to the periodic process
 
     // We are both sporadic, or the other's time slot has expired.
     // Keep the currently running process
@@ -213,26 +213,6 @@ int OS_GetParam()
     return param;
 }
 
-int terminate_syscall()
-{
-    disable_interrupts();
-    pcb_t* pcb = get_current_process();
-    free_process( pcb );
-
-    OS_Yield(); // Yield the CPU to another process
-    // We should never be rescheduled
-    KERNEL_ASSERT( false, "Should never reschedule terminated process" );
-    enable_interrupts();
-    return SYS_FAILED;
-}
-
-void OS_Terminate()
-{
-    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
-    syscall( SYSCALL_PROCESS_TERMINATE, 0, 0 );
-    KERNEL_ASSERT( false, "Terminate should never return" );
-}
-
 int yield_syscall()
 {
     disable_interrupts();
@@ -248,7 +228,7 @@ int yield_syscall()
         case DEVICE:
             yield_device();
             if( !schedule_next_device() ) // Run colliding device process
-                if( !continue_periodic() ) // Run preempted periodic process
+                if( !schedule_next_periodic() ) // Run preempted periodic process
                     schedule_sporadic(); // Run sporadic process
             break;
     }
@@ -260,6 +240,26 @@ void OS_Yield()
 {
     int res = syscall( SYSCALL_PROCESS_YIELD, 0, 0 );
     KERNEL_WARNING( res == SYS_SUCCESS, "Error yielding process" );
+}
+
+int terminate_syscall()
+{
+    disable_interrupts();
+    pcb_t* pcb = get_current_process();
+    free_process( pcb );
+
+    yield_syscall(); // Yield the CPU to another process
+    // We should never be rescheduled
+    KERNEL_ASSERT( false, "Should never reschedule terminated process" );
+    enable_interrupts();
+    return SYS_FAILED;
+}
+
+void OS_Terminate()
+{
+    KERNEL_ASSERT( current_process != IDLE, "Cannot terminate idle process" );
+    syscall( SYSCALL_PROCESS_TERMINATE, 0, 0 );
+    KERNEL_ASSERT( false, "Terminate should never return" );
 }
 
 typedef struct {
@@ -367,7 +367,8 @@ __attribute__((unused)) void new_proc_entry_point( void* start_param )
     enable_interrupts();
 
     // Initialise our memory
-    process_init_memory( pcb );
+    bool res = process_init_memory( pcb );
+    PROCESS_ASSERT( res, "Failed to allocate memory for new process");
 
     // Child process will be run and terminate
     pcb->function();

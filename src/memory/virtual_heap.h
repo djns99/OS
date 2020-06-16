@@ -30,14 +30,38 @@ typedef struct {
     uint32_t heap_usage;
 } virtual_heap_t;
 
+/**
+ * Initialises a virtual heap
+ * @param heap The heap object to init
+ * @param start_addr The start virtual address of the heap
+ * @param end_addr The end virtual address of the heap
+ * @param page_alloc_func The function the heap should use to allocate virtual pages
+ * @param page_free_func The function the heap should use to free virtual pages
+ * @param alloc_flags The flags to use when allocating
+ * @return True if the heap is successfully initialised
+ */
 bool init_virtual_heap( virtual_heap_t* heap, void* start_addr, void* end_addr, page_alloc_func_t page_alloc_func,
                         page_free_func_t page_free_func, uint32_t alloc_flags );
+
+/**
+ * Allocate an address from a virtual heap
+ * @param heap The heap to allocate from
+ * @param size The number of bytes to allocate
+ * @return An allocated virtual address, or NULL on failure
+ */
 void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size );
 
 typedef enum {
     heap_free_ok, heap_free_oom, heap_free_fatal
 } heap_free_res_t;
 
+/**
+ * Free an element from a virtual heap
+ * @param heap The heap to free from
+ * @param addr The address to free
+ * @return heap_free_ok if successful, heap_free_fatal on an invalid free and
+ *         heap_free_oom if there was not enough resources to free the pointer
+ */
 heap_free_res_t virtual_heap_free( virtual_heap_t* heap, void* addr );
 
 #endif //OS_VIRTUAL_HEAP_H

@@ -10,6 +10,9 @@
 #define PIC_SLAVE_CONTROL (port_t)0xA0
 #define PIC_SLAVE_DATA (port_t)(PIC_SLAVE_CONTROL + 1)
 
+/**
+ * Remaps the PICs to not conflict with the system interrupts
+ */
 static inline void remap_pic()
 {
     const uint8_t old_data_master = port_read8( PIC_MASTER_DATA );
@@ -31,6 +34,10 @@ static inline void remap_pic()
     port_write8( PIC_SLAVE_DATA, old_data_slave );
 }
 
+/**
+ * Sends the EOI signal to the PIC to indicate the interrupt has been successfully received
+ * @param irq_num The interrupt to acknowledge
+ */
 static inline void send_eoi( uint32_t irq_num )
 {
     if( irq_num >= 8 )
