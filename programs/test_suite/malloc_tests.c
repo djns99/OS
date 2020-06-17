@@ -18,8 +18,29 @@ bool test_malloc_small()
     ASSERT_EQ( *malloc1, 1 );
     ASSERT_EQ( *malloc2, 2 );
 
-    OS_Free( (MEMORY) malloc1 );
-    OS_Free( (MEMORY) malloc2 );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc1 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc2 ) );
+
+    return true;
+}
+
+bool test_malloc_underflow_regression()
+{
+    uint8_t* malloc1 = (void*) OS_Malloc( 1 );
+    uint8_t* malloc2 = (void*) OS_Malloc( 1 );
+    uint8_t* malloc3 = (void*) OS_Malloc( 1 );
+
+    ASSERT_NE( malloc1, NULL );
+    ASSERT_NE( malloc2, NULL );
+    ASSERT_NE( malloc3, NULL );
+
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc2 ) );
+
+    uint8_t* malloc4 = (void*) OS_Malloc( 1 );
+
+    ASSERT_TRUE( OS_Free((MEMORY)malloc1) );
+    ASSERT_TRUE( OS_Free((MEMORY)malloc3) );
+    ASSERT_TRUE( OS_Free((MEMORY)malloc4) );
 
     return true;
 }
@@ -49,8 +70,8 @@ bool test_malloc_large()
     memset8( malloc2, 0x2, alloc_size );
     ASSERT_FALSE( memcmp( malloc1, malloc2, alloc_size ) );
 
-    OS_Free( (MEMORY) malloc1 );
-    OS_Free( (MEMORY) malloc2 );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc1 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc2 ) );
 
     OS_Yield();
 
@@ -60,8 +81,8 @@ bool test_malloc_large()
     ASSERT_EQ( malloc1, malloc3 );
     ASSERT_EQ( malloc2, malloc4 );
 
-    OS_Free( (MEMORY) malloc3 );
-    OS_Free( (MEMORY) malloc4 );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc3 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc4 ) );
 
     return true;
 }
@@ -80,7 +101,7 @@ bool test_malloc_oom()
     ASSERT_EQ( malloc2, NULL );
 
     if( malloc1 )
-        OS_Free( (MEMORY) malloc1 );
+        ASSERT_TRUE( OS_Free( (MEMORY) malloc1 ) );
 
     return true;
 }

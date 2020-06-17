@@ -21,6 +21,8 @@ void shell() {
             print( "Valid commands: TEST, HELP, EXIT\n" );
         else
             print( "Unrecognised command %s\nUse the HELP function to see available commands\n", line );
+
+        OS_Free((MEMORY)line);
     }
     print("Shell Exiting");
 }

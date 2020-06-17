@@ -244,7 +244,13 @@ void backspace()
 {
     if( col > 0 ) {
         col--;
-        write_char_no_advance( ' ' );
-        update_cursor();
+    } else if( row > 0 ) {
+        row--;
+        col = TEXT_MODE_WIDTH - 1;
+    } else {
+        return;
     }
+
+    write_char_no_advance( ' ' );
+    update_cursor();
 }

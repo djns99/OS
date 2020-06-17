@@ -8,6 +8,7 @@ static test_t test_suite[] = {
         // Malloc tests
         { .name = "Small Malloc Tests", .function = test_malloc_small },
         { .name = "Large Malloc Tests", .function = test_malloc_large },
+        { .name = "Malloc Underflow Regression Tests", .function = test_malloc_underflow_regression },
         { .name = "OOM Malloc Tests", .function = test_malloc_oom },
         { .name = "Many Malloc Tests", .function = test_malloc_many },
         { .name = "Variable Malloc Tests", .function = test_malloc_variable },

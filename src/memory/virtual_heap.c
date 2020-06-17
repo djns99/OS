@@ -198,11 +198,10 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
     const uint32_t alloc_end_page = CEIL_DIV( selected->start + real_size, PAGE_SIZE );
     // Rounds down to last unallocated page
     const uint32_t end_page = ( selected->start + selected->len ) / PAGE_SIZE;
-    KERNEL_ASSERT( end_page >= start_page && alloc_end_page >= start_page, "Underflow bug" );
-
-    if( !heap->page_alloc_func( (void*) ( start_page * PAGE_SIZE ),
-                                MIN( alloc_end_page - start_page, end_page - start_page ), heap->alloc_flags ) )
-        goto fail;
+    if( end_page >= start_page && alloc_end_page >= start_page )
+        if( !heap->page_alloc_func( (void*) ( start_page * PAGE_SIZE ),
+                                    MIN( alloc_end_page - start_page, end_page - start_page ), heap->alloc_flags ) )
+            goto fail;
 
     uint16_t* actual_addr = (uint16_t*) selected->start;
     *actual_addr = size_log;

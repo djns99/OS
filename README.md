@@ -41,3 +41,12 @@ qemu-launch.sh gdb         # To launch and wait for a gdb connection
                            # and set some useful debugging breakpoints
 qemu-launch.sh <args>      # Forwards the args to qemu
 ```
+
+## Known Bugs
+
+There is currently a few known bugs that are beyond the current scope of the project:
+
+* If the user input types more characters than fit on the screen and then backspaces them, backspace will work but not display on the screen
+* In some cases freeing memory may not have sufficient resources and thus may cause an irrecoverable lock up
+* If the stack over flows there will be a triple fault resulting in an OS reset
+    * This requires user mode to be fixed, which is future work

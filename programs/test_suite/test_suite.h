@@ -12,6 +12,7 @@ typedef struct {
 } test_t;
 
 bool test_malloc_small();
+bool test_malloc_underflow_regression();
 bool test_malloc_large();
 bool test_malloc_oom();
 bool test_malloc_many();

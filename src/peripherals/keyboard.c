@@ -31,6 +31,7 @@ list_head_t reading_process;
 
 void unblock_waiting_reader()
 {
+    print("\n");
     disable_interrupts();
     if( current_buffer ) {
         KERNEL_ASSERT( buffer_pos <= buffer_len, "Overran read line buffer" );
@@ -62,18 +63,24 @@ bool extend_buffer()
 void add_char_to_line( char c )
 {
     disable_interrupts();
-    if( !extend_buffer() )
+    if( !extend_buffer() ) {
         unblock_waiting_reader();
-    else
+    } else {
         current_buffer[ buffer_pos++ ] = c;
+        /* Remember that kprint only accepts char[] */
+        char str[2] = { c, '\0' };
+        print( str );
+    }
     enable_interrupts();
 }
 
 void remove_char_from_line()
 {
     disable_interrupts();
-    if( buffer_pos )
+    if( buffer_pos ) {
         buffer_pos--;
+        backspace();
+    }
     enable_interrupts();
 }
 
@@ -85,17 +92,11 @@ void keyboard_handler( interrupt_params_t* r )
         return;
 
     if( scancode == BACKSPACE ) {
-        backspace();
         remove_char_from_line();
     } else if( scancode == ENTER ) {
-        print( "\n" );
         unblock_waiting_reader();
     } else {
         char letter = sc_ascii[ (int) scancode ];
-        /* Remember that kprint only accepts char[] */
-        char str[2] = { letter, '\0' };
-        print( str );
-
         add_char_to_line( letter );
     }
 }
@@ -122,18 +123,18 @@ int readline_syscall( uint32_t param1, uint32_t param2 )
 
     int res = SYS_FAILED;
     char* user_data = user_malloc( buffer_pos + 1 );
-    if(user_data) {
+    if( user_data ) {
         char** line = (char**) param2;
         *line = user_data;
         memcpy( user_data, current_buffer, buffer_pos + 1 );
-        user_data[buffer_pos] = '\0';
+        user_data[ buffer_pos ] = '\0';
         res = SYS_SUCCESS;
     }
 
     // Release the keyboard for a different process
     disable_interrupts();
     current_buffer = NULL;
-    schedule_blocked(&blocked_processes);
+    schedule_blocked( &blocked_processes );
     enable_interrupts();
 
     return res;
