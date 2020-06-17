@@ -19,7 +19,7 @@ add_executable(kernel_readable.bin kernel_entry.asm ${SRC_ASM_FILES} ${SRC_C_FIL
 add_dependencies(kernel_readable.bin linker)
 
 # Binary format for actual image
-add_custom_target(kernel.bin 
+add_custom_target(kernel.bin
         COMMAND objcopy -O binary ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel_readable.bin ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.bin
         DEPENDS kernel_readable.bin
         BYPRODUCTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/kernel.bin)
