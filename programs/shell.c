@@ -24,5 +24,5 @@ void shell() {
 
         OS_Free((MEMORY)line);
     }
-    print("Shell Exiting");
+    print("Shell Exited");
 }
