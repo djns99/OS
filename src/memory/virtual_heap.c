@@ -3,6 +3,9 @@
 #include "virtual_heap.h"
 #include "memory.h"
 #include "meminfo.h"
+#include "virtual_memory.h"
+
+#define HEAP_MAGIC_NUM ((uint16_t)0xD500)
 
 bool realloc_pool( virtual_heap_t* heap )
 {
@@ -204,7 +207,7 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
             goto fail;
 
     uint16_t* actual_addr = (uint16_t*) selected->start;
-    *actual_addr = size_log;
+    *actual_addr = HEAP_MAGIC_NUM | size_log;
 
     // Remove the allocated range from entry
     selected->start += real_size;
@@ -224,8 +227,14 @@ void* virtual_heap_alloc( virtual_heap_t* heap, uint32_t size )
 
 heap_free_res_t virtual_heap_free( virtual_heap_t* heap, void* addr )
 {
-    void* actual_addr = addr - 2;
-    const uint32_t size = ( 1u << *(uint16_t*) actual_addr ) + 2;
+    if( (uintptr_t) addr < 2 )
+        return heap_free_fatal;
+    uint16_t* actual_addr = (uint16_t*) ( addr - 2 );
+    if( !virt_address_is_valid( actual_addr ) )
+        return heap_free_fatal;
+    if( ( *actual_addr & 0xff00u ) != HEAP_MAGIC_NUM )
+        return heap_free_fatal;
+    const uint32_t size = ( 1u << ( *actual_addr & 0xffu ) ) + 2;
     heap->heap_usage -= size;
     return insert_free_list( heap, actual_addr, size );
 }

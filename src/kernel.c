@@ -23,8 +23,6 @@ void OS_Init()
     init_syscall();
 
     OS_InitMemory();
-    bool res = init_kernel_memory();
-    KERNEL_ASSERT( res, "Failed to init kernel memory" );
 
     init_timer( 10000 );
     init_keyboard();
@@ -40,7 +38,6 @@ extern void shell();
 
 void OS_Start()
 {
-    // TODO Launch shell
     // Launch initial process
     // We are the idle process
     if( OS_Create( shell, 0, SPORADIC, 0 ) == INVALIDPID )

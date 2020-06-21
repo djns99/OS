@@ -11,8 +11,8 @@
 bool process_init_memory( pcb_t* pcb )
 {
     return init_virtual_heap( &pcb->heap, (void*) PAGE_SIZE, (void*) ( MAX_USER_MEMORY_SIZE - pcb->stack_size ),
-                       &alloc_address_range, &free_address_range,
-                       PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
+                              &alloc_address_range, &free_address_range,
+                              PAGE_USER_ACCESSIBLE_FLAG | PAGE_MODIFIABLE_FLAG | PAGE_PRESENT_FLAG );
 }
 
 void* user_malloc( uint32_t bytes )
@@ -21,7 +21,8 @@ void* user_malloc( uint32_t bytes )
     return virtual_heap_alloc( &current_proc->heap, bytes );
 }
 
-bool user_free( void* ptr ) {
+bool user_free( void* ptr )
+{
     pcb_t* current_proc = get_current_process();
     heap_free_res_t res = virtual_heap_free( &current_proc->heap, (void*) ptr );
     PROCESS_WARNING( res != heap_free_fatal, "Process tried to free an illegal address" );
@@ -33,7 +34,7 @@ int malloc_syscall( uint32_t size, uint32_t result )
     if( !result )
         return SYS_INVLARG;
 
-    *(MEMORY*)result = (MEMORY) user_malloc( size );
+    *(MEMORY*) result = (MEMORY) user_malloc( size );
     return SYS_SUCCESS;
 }
 
@@ -42,7 +43,7 @@ int free_syscall( uint32_t ptr, uint32_t result )
     if( !result || !ptr )
         return SYS_INVLARG;
 
-    *(bool*)result = user_free( (void*) ptr );
+    *(bool*) result = user_free( (void*) ptr );
     return SYS_SUCCESS;
 }
 
@@ -52,7 +53,7 @@ MEMORY OS_Malloc( int size )
         return NULL;
 
     MEMORY res;
-    if( syscall( SYSCALL_MALLOC, size, (uint32_t)&res ) != SYS_SUCCESS )
+    if( syscall( SYSCALL_MALLOC, size, (uint32_t) &res ) != SYS_SUCCESS )
         return NULL;
 
     return res;
@@ -60,9 +61,8 @@ MEMORY OS_Malloc( int size )
 
 BOOL OS_Free( MEMORY m )
 {
-    PROCESS_ASSERT( m, "Freed NULL pointer" );
     bool res;
-    if( syscall( SYSCALL_FREE, m, (uint32_t)&res ) != SYS_SUCCESS )
+    if( syscall( SYSCALL_FREE, m, (uint32_t) &res ) != SYS_SUCCESS )
         return false;
     return res;
 }
@@ -75,4 +75,7 @@ void OS_InitMemory()
     init_page_map();
     init_physical_memory();
     init_virtual_memory();
+
+    bool res = init_kernel_memory();
+    KERNEL_ASSERT( res, "Failed to init kernel memory" );
 }

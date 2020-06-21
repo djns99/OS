@@ -69,4 +69,11 @@ void* kernel_heap_start();
  */
 void* kernel_heap_end();
 
+/**
+ * Checks if an address is a valid virtual address
+ * @param address The address to check
+ * @return True if the address is valid, false otherwise
+ */
+bool virt_address_is_valid( void* address );
+
 #endif //OS_VIRTUAL_MEMORY_H

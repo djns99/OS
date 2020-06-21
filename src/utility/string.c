@@ -25,8 +25,8 @@ void strncpy( char* out, const char* string, size_t len )
 
 bool strcmp( const char* str1, const char* str2 )
 {
-    while ( *str1 && *str2 )
-        if( *(str1++) != *(str2++) )
+    while( *str1 && *str2 )
+        if( *( str1++ ) != *( str2++ ) )
             return false;
     return !*str1 && !*str2;
 }

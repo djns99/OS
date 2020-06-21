@@ -201,14 +201,14 @@ int get_param_syscall( uint32_t res, uint32_t _2 )
 {
     if( !res )
         return SYS_INVLARG;
-    *(int*)res = get_current_process()->arg;
+    *(int*) res = get_current_process()->arg;
     return SYS_SUCCESS;
 }
 
 int OS_GetParam()
 {
     int param;
-    int sys_res = syscall( SYSCALL_PROCESS_GET_PARAM, (uint32_t)&param, 0 );
+    int sys_res = syscall( SYSCALL_PROCESS_GET_PARAM, (uint32_t) &param, 0 );
     PROCESS_WARNING( sys_res == SYS_SUCCESS, "Error getting process param" );
     return param;
 }
@@ -263,7 +263,7 @@ void OS_Terminate()
 }
 
 typedef struct {
-    void (*f)();
+    void (* f)();
     int arg;
     uint32_t level;
     uint32_t n;
@@ -272,8 +272,8 @@ typedef struct {
 
 int create_syscall( uint32_t param, uint32_t _ )
 {
-    create_syscall_args_t* args = (create_syscall_args_t*)param;
-    if(!args || !args->f)
+    create_syscall_args_t* args = (create_syscall_args_t*) param;
+    if( !args || !args->f )
         return SYS_INVLARG;
 
     disable_interrupts();
@@ -291,7 +291,7 @@ int create_syscall( uint32_t param, uint32_t _ )
     pcb->context.cr3 = NULL;
     pcb->context.stack = NULL;
     pcb->state = READY;
-    memset8( pcb->held_semaphores, 0x0, sizeof(pcb->held_semaphores) );
+    memset8( pcb->held_semaphores, 0x0, sizeof( pcb->held_semaphores ) );
 
     bool res = false;
     switch( args->level ) {
@@ -334,10 +334,10 @@ int create_syscall( uint32_t param, uint32_t _ )
 /* Process Management primitives */
 PID OS_Create( void (* f)( void ), int arg, unsigned int level, unsigned int n )
 {
-    if(!f)
+    if( !f )
         return INVALIDPID;
     create_syscall_args_t args = { f, arg, level, n, INVALIDPID };
-    int res = syscall( SYSCALL_PROCESS_CREATE, (uint32_t)&args, 0 );
+    int res = syscall( SYSCALL_PROCESS_CREATE, (uint32_t) &args, 0 );
     KERNEL_WARNING( res == SYS_SUCCESS || res == SYS_FAILED, "Error while creating child process" );
     return res == SYS_SUCCESS ? args.out_pid : INVALIDPID;
 }
@@ -368,7 +368,7 @@ __attribute__((unused)) void new_proc_entry_point( void* start_param )
 
     // Initialise our memory
     bool res = process_init_memory( pcb );
-    PROCESS_ASSERT( res, "Failed to allocate memory for new process");
+    PROCESS_ASSERT( res, "Failed to allocate memory for new process" );
 
     // Child process will be run and terminate
     pcb->function();

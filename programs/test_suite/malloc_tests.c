@@ -169,3 +169,24 @@ bool test_malloc_fill()
 
     return true;
 }
+
+bool test_bad_free()
+{
+    ASSERT_FALSE( OS_Free( 0 ) );
+    ASSERT_FALSE( OS_Free( 0x1000 ) );
+    ASSERT_FALSE( OS_Free( UINT32_MAX ) );
+
+    uint8_t* malloc1 = (void*) OS_Malloc( 1000 );
+
+    ASSERT_NE( malloc1, NULL );
+
+    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 + 1 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 + 999 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 - 1 ) );
+    ASSERT_FALSE( OS_Free( 0x1000 ) );
+
+    ASSERT_TRUE( OS_Free( (MEMORY)malloc1 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 ) );
+
+    return true;
+}

@@ -453,3 +453,13 @@ void* kernel_heap_end()
 {
     return (void*) ( ( MAX_ADDRESSABLE_MEMORY_SIZE >> PAGE_SIZE_LOG ) * PAGE_SIZE );
 }
+
+bool virt_address_is_valid( void* address )
+{
+    const size_t dir_entry = address_to_directory_entry( (size_t) address );
+    if( !page_directory_entry_is_valid( dir_entry ) )
+        return false;
+    const size_t tab_entry = address_to_table_entry( (size_t) address );
+    return *get_table_entry( dir_entry, tab_entry ) != NULL;
+}
+

@@ -13,6 +13,7 @@ static test_t test_suite[] = {
         { .name = "Many Malloc Tests", .function = test_malloc_many },
         { .name = "Variable Malloc Tests", .function = test_malloc_variable },
         { .name = "Fill Malloc Tests", .function = test_malloc_fill },
+        { .name = "Bad Free Tests", .function = test_bad_free },
 
         // Semaphore tests
         { .name = "Mutual Exclusion Semaphore Tests", .function = test_semaphore_mutex },

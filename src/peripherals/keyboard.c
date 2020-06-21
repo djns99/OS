@@ -31,7 +31,7 @@ list_head_t reading_process;
 
 void unblock_waiting_reader()
 {
-    print("\n");
+    print( "\n" );
     disable_interrupts();
     if( current_buffer ) {
         KERNEL_ASSERT( buffer_pos <= buffer_len, "Overran read line buffer" );

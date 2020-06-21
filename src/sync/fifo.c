@@ -19,11 +19,11 @@ int init_fifo_syscall( uint32_t res, uint32_t _ )
         if( fifo_pool[ i ].head != NULL ) {
             fifo_pool[ i ].head = 0;
             fifo_pool[ i ].size = 0;
-            *(FIFO *)res = i + 1;
+            *(FIFO*) res = i + 1;
             return SYS_SUCCESS;
         }
     }
-    *(FIFO *)res = INVALIDFIFO;
+    *(FIFO*) res = INVALIDFIFO;
     return SYS_SUCCESS;
 }
 
@@ -54,7 +54,7 @@ int write_fifo_syscall( uint32_t param1, uint32_t param2 )
 int read_fifo_syscall( uint32_t param, uint32_t res )
 {
     FIFO f = param;
-    int* val = (int*)res;
+    int* val = (int*) res;
 
     if( f == INVALIDFIFO || f > MAXFIFO || !val )
         return SYS_INVLARG;
@@ -81,7 +81,7 @@ int read_fifo_syscall( uint32_t param, uint32_t res )
 FIFO OS_InitFiFo()
 {
     FIFO res;
-    if(syscall( SYSCALL_FIFO_INIT, (uint32_t)&res, 0 ) != SYS_SUCCESS)
+    if( syscall( SYSCALL_FIFO_INIT, (uint32_t) &res, 0 ) != SYS_SUCCESS )
         return INVALIDFIFO;
     return res;
 }
@@ -94,7 +94,7 @@ void OS_Write( FIFO f, int val )
 
 BOOL OS_Read( FIFO f, int* val )
 {
-    int res = syscall( SYSCALL_FIFO_READ, f, (uint32_t)val );
+    int res = syscall( SYSCALL_FIFO_READ, f, (uint32_t) val );
     PROCESS_WARNING( res == SYS_SUCCESS || res == SYS_FAILED, "Error reading from FIFO" );
     return res == SYS_SUCCESS;
 }

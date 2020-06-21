@@ -149,7 +149,8 @@ __attribute__((unused)) void isr_handler( interrupt_params_t r )
         OS_Terminate();
         KERNEL_ASSERT( false, "Terminate returned\n" );
     } else {
-        print( "Process %d received '%s' at %p\nTerminating\n", get_current_process()->pid, exception_messages[ r.int_no ], r.eip );
+        print( "Process %d received '%s' at %p\nTerminating\n", get_current_process()->pid,
+               exception_messages[ r.int_no ], r.eip );
         OS_Terminate();
         KERNEL_ASSERT( false, "Terminate returned\n" );
     }

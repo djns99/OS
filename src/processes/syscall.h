@@ -40,7 +40,7 @@ void init_syscall();
  */
 int syscall( syscall_t syscall, uint32_t param1, uint32_t param2 );
 
-typedef int(*syscall_func_t)( uint32_t, uint32_t );
+typedef int(* syscall_func_t)( uint32_t, uint32_t );
 /**
  * Register a handler for a specific syscall function
  * @param syscall_id The syscall to register the function for
