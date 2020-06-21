@@ -63,13 +63,15 @@ bool extend_buffer()
 void add_char_to_line( char c )
 {
     disable_interrupts();
-    if( !extend_buffer() ) {
-        unblock_waiting_reader();
-    } else {
-        current_buffer[ buffer_pos++ ] = c;
-        /* Remember that kprint only accepts char[] */
-        char str[2] = { c, '\0' };
-        print( str );
+    if( current_buffer ) {
+        if( !extend_buffer() ) {
+            unblock_waiting_reader();
+        } else {
+            current_buffer[ buffer_pos++ ] = c;
+            /* Remember that kprint only accepts char[] */
+            char str[2] = { c, '\0' };
+            print( str );
+        }
     }
     enable_interrupts();
 }
