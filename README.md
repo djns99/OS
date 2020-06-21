@@ -39,6 +39,7 @@ qemu-launch.sh gdb         # To launch and wait for a gdb connection
                            # For convenience a `.gdbinit` file is provided
                            # This file will automatically connect
                            # and set some useful debugging breakpoints
+                           # NOTE: It may be necessary to change the path to the compiled kernel
 qemu-launch.sh <args>      # Forwards the args to qemu
 ```
 

@@ -32,10 +32,7 @@ int syscall( syscall_t syscall, uint32_t param1, uint32_t param2 )
         return SYS_INVALID;
 
     int res;
-    asm volatile ("mov %1, %%eax;"
-                  "mov %2, %%ebx;"
-                  "mov %3, %%ecx;"
-                  "int $0x80;"
-                  "mov %%eax, %0": "=r" (res) :"r" (syscall), "r" (param1), "r" (param2) : "memory");
+    asm volatile ("int $0x80;"
+                  "mov %%eax, %0": "=r" (res) :"a" (syscall), "b" (param1), "c" (param2) : "memory");
     return res;
 }
