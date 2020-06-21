@@ -1,6 +1,5 @@
-# StokesOS
+# OS
 
-This is my OS written for COMPX560-20X.
 The src/ folder contains all the C code for the operating system, while the boot/ contains the assembly files used for booting.
 The programs/ directory contains 'user' applications that use the OS.
 Finally boot_sect.asm and kernel_entry.asm provide the initial entry points for booting and the kernel respectively
