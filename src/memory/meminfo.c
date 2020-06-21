@@ -39,7 +39,7 @@ void init_page_map()
 {
     KERNEL_ASSERT( memmap_table != NULL, "Memory map was not linked" );
     if( memmap_num_entries == 0xdeadbeef ) {
-        print( "BiOS failed to load memory map. I dont know what to do here\n" );
+        print( "BIOS failed to load memory map. I dont know what to do here\n" );
         OS_Abort();
         return;
     }
