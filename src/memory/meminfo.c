@@ -108,7 +108,7 @@ bool meminfo_phys_page_is_kernel( uint32_t page_id )
 {
     const size_t effective_address = page_id_to_phys_address( page_id );
     if( get_phys_kernel_start() <= effective_address && effective_address < get_phys_kernel_end() )
-        return false; // Overlaps with kernel not allowed to alloc
+        return true; // Overlaps with kernel address space
 
-    return true;
+    return false;
 }

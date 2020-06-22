@@ -22,7 +22,7 @@ void init_physical_memory()
     bitmap_clear_all( free_page_bitmap );
 
     for( uint32_t i = 0; i < max_usable_pages; i++ ) {
-        bool res = meminfo_phys_page_is_kernel( i );
+        bool res = !meminfo_phys_page_is_kernel( i );
         bitmap_assign_bit( free_page_bitmap, i, res );
     }
 }

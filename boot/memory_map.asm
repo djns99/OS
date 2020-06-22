@@ -1,12 +1,13 @@
+; Taken from: http://wiki.osdev.org/Detecting_Memory_(x86)
 ; use the INT 0x15, eax= 0xE820 BIOS function to get a memory map
-; note: initially di is 0, be sure to set it to a value so that the BIOS code will not be overwritten. 
+; note: initially di is 0, be sure to set it to a value so that the BIOS code will not be overwritten.
 ;       The consequence of overwriting the BIOS code will lead to problems like getting stuck in `int 0x15`
 ; inputs: es:di -> destination buffer for 24 byte entries
 ; outputs: bp = entry count, trashes all registers except esi
 [bits 16]
 mmap_ent equ 0x8000             ; the number of entries will be stored at 0x8000
 load_memory_map:
-    mov di, 0x8004          ; Set di to 0x8004. Otherwise this code will get stuck in `int 0x15` after some entries are fetched 
+    mov di, 0x8004          ; Set di to 0x8004. Otherwise this code will get stuck in `int 0x15` after some entries are fetched
 	xor ebx, ebx		; ebx must be 0 to start
 	xor bp, bp		; keep an entry count in bp
 	mov edx, 0x0534D4150	; Place "SMAP" into edx
@@ -51,5 +52,5 @@ load_memory_map:
 	call print
 	call print_nl
 	ret
-	
+
 MMAP_ERROR: db "Failed to get memmap", 0
