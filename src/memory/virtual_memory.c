@@ -39,7 +39,7 @@ void reload_page_table_page( uint32_t page_id )
 
 void reload_page_table_address_range( uint32_t start_address, uint32_t end_address )
 {
-    for( uint32_t curr_page = start_address >> PAGE_SIZE_LOG; curr_page < ( end_address >> PAGE_SIZE_LOG );
+    for( uint32_t curr_page = start_address >> PAGE_SIZE_LOG; curr_page <= ( ( end_address - 1 ) >> PAGE_SIZE_LOG );
          curr_page++ )
         reload_page_table_page( curr_page );
 }
@@ -97,8 +97,8 @@ void wipe_page_table_entry( size_t virt_address )
         }
     }
 
-    if(dir_empty) {
-        free_phys_page( (size_t)curr_page_directory[ directory_entry ] );
+    if( dir_empty ) {
+        free_phys_page( (size_t) curr_page_directory[ directory_entry ] );
         curr_page_directory[ directory_entry ] = NULL;
     }
 
