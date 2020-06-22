@@ -45,6 +45,9 @@ bool test_semaphore_mutex()
     ASSERT_TRUE( awake[ 0 ] );
     ASSERT_TRUE( awake[ 1 ] );
 
+    // Yield to allow other processes to exit
+    OS_Yield();
+
     return true;
 }
 
@@ -67,7 +70,7 @@ bool test_semaphore_n_blocked()
     // Yield again to see if any remaining will grab the semaphore
     OS_Yield();
 
-    for( uint32_t j = 0; j < num_processes / 2; j++ ) {
+    for( uint32_t j = 0; num_processes / 2 + j < num_processes; j++ ) {
         // Verify that only half the processes woke up
         uint32_t num_awake = 0;
         for( uint32_t i = 0; i < num_processes; i++ ) {
@@ -83,6 +86,9 @@ bool test_semaphore_n_blocked()
             OS_Wait( HOST_NOTIFY_SEM );
         }
     }
+
+    // Yield to allow other processes to exit
+    OS_Yield();
 
     return true;
 }

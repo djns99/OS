@@ -133,18 +133,20 @@ bool test_malloc_variable()
 {
     uint8_t* allocs[8192];
     const uint32_t num_allocs = sizeof( allocs ) / sizeof( allocs[ 0 ] );
+    // Repeat the test 4 times to check state is restored
+    for( uint32_t pass = 0; pass < 4; pass++ ) {
+        for( uint32_t i = 0; i < num_allocs; i++ ) {
+            allocs[ i ] = (uint8_t*) OS_Malloc( i + 1 );
+            ASSERT_NE( allocs[ i ], NULL );
+            allocs[ i ][ 0 ] = i;
+            allocs[ i ][ i ] = i;
+        }
 
-    for( uint32_t i = 0; i < num_allocs; i++ ) {
-        allocs[ i ] = (uint8_t*) OS_Malloc( i + 1 );
-        ASSERT_NE( allocs[ i ], NULL );
-        allocs[ i ][ 0 ] = i;
-        allocs[ i ][ i ] = i;
-    }
-
-    for( uint32_t i = 0; i < num_allocs; i++ ) {
-        ASSERT_EQ( allocs[ i ][ 0 ], (uint8_t) i );
-        ASSERT_EQ( allocs[ i ][ i ], (uint8_t) i );
-        ASSERT_TRUE( OS_Free( (MEMORY) allocs[ i ] ) );
+        for( uint32_t i = 0; i < num_allocs; i++ ) {
+            ASSERT_EQ( allocs[ i ][ 0 ], (uint8_t) i );
+            ASSERT_EQ( allocs[ i ][ i ], (uint8_t) i );
+            ASSERT_TRUE( OS_Free( (MEMORY) allocs[ i ] ) );
+        }
     }
 
     return true;
@@ -153,18 +155,20 @@ bool test_malloc_variable()
 bool test_malloc_fill()
 {
     uint8_t* allocs[( MAX_USER_MEMORY_SIZE / 18691 ) + 1];
+    // Repeat the test 4 times to check state is restored
+    for( uint32_t pass = 0; pass < 4; pass++ ) {
+        uint32_t i = 0;
+        while( ( allocs[ i ] = (uint8_t*) OS_Malloc( 18691 ) ) ) {
+            allocs[ i ][ 0 ] = i;
+            allocs[ i ][ 18690 ] = i;
+            i++;
+        }
 
-    uint32_t i = 0;
-    while( ( allocs[ i ] = (uint8_t*) OS_Malloc( 18691 ) ) ) {
-        allocs[ i ][ 0 ] = i;
-        allocs[ i ][ 18690 ] = i;
-        i++;
-    }
-
-    for( uint32_t j = 0; j < i; j++ ) {
-        ASSERT_EQ( allocs[ j ][ 0 ], (uint8_t) j );
-        ASSERT_EQ( allocs[ j ][ 18690 ], (uint8_t) j );
-        ASSERT_TRUE( OS_Free( (MEMORY) allocs[ j ] ) );
+        for( uint32_t j = 0; j < i; j++ ) {
+            ASSERT_EQ( allocs[ j ][ 0 ], (uint8_t) j );
+            ASSERT_EQ( allocs[ j ][ 18690 ], (uint8_t) j );
+            ASSERT_TRUE( OS_Free( (MEMORY) allocs[ j ] ) );
+        }
     }
 
     return true;

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13.3)
 project(OS C ASM_NASM)
 set(CMAKE_C_COMPILER /usr/local/i386elfgcc/bin/i386-elf-gcc)
-set(CMAKE_C_FLAGS "-ffreestanding ${CMAKE_C_FLAGS} -Werror -Wall -Os")
+set(CMAKE_C_FLAGS "-ffreestanding ${CMAKE_C_FLAGS} -Werror -Wall -O0")
 set(CMAKE_C_LINK_EXECUTABLE "/usr/local/i386elfgcc/bin/i386-elf-gcc <LINK_FLAGS> -T ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld -o <TARGET> <OBJECTS> -ffreestanding -nostdlib -lgcc")
 set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <INCLUDES> <FLAGS> -f elf -o <OBJECT> <SOURCE>")
 set(CMAKE_ASM_NASM_FLAGS "${CMAKE_ASM_NASM_FLAGS} -Werror -Wall")

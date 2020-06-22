@@ -38,6 +38,7 @@ uint32_t failures = 0;
 
 bool watchdog_check = false;
 bool watchdog_running = true;
+bool watchdog_exited = true;
 bool verbose = false;
 bool break_on_failure = false;
 
@@ -74,6 +75,7 @@ const uint32_t watch_dog_seconds = 20;
 
 void test_watchdog()
 {
+    watchdog_exited = false;
     watchdog_check = false;
     while( watchdog_running ) {
         // Assume test has died
@@ -91,6 +93,8 @@ void test_watchdog()
     }
     if( verbose )
         print( "Test watchdog terminated\n" );
+
+    watchdog_exited = true;
 }
 
 void test_runner()
@@ -102,19 +106,31 @@ void test_runner()
     const uint32_t num_tests = sizeof( test_suite ) / sizeof( test_t );
     if( verbose )
         print( "Running %u tests\n", num_tests );
+
     // Start from 0 since we want to wait by default
     OS_InitSem( TEST_RUNNER_SEMAPHORE, 0 );
+
+    // Check for a watch dog from a previous run
     watchdog_running = true;
-    PID res = OS_Create( test_watchdog, 0, DEVICE, watch_dog_seconds * 1000 );
-    PROCESS_WARNING( res != INVALIDPID, "Failed to start watchdog process" );
+    if( !watchdog_exited ) {
+        watchdog_exited = false;
+        PID res = OS_Create( test_watchdog, 0, DEVICE, watch_dog_seconds * 1000 );
+        PROCESS_WARNING( res != INVALIDPID, "Failed to start watchdog process" );
+    }
+
     for( uint32_t i = 0; i < num_tests; i++ ) {
         if( verbose )
             print( "Launching test %s\n", test_suite[ i ].name );
-        // Loop until a slot opens up
+
+        // Launch the next test application
         PID pid = OS_Create( test_executor, i, SPORADIC, 0 );
         if( pid == INVALIDPID )
             print( "Failed to launch test %s. Skipping\n", test_suite[ i ].name );
-        OS_Wait( TEST_RUNNER_SEMAPHORE );
+        else
+            OS_Wait( TEST_RUNNER_SEMAPHORE );
+
+        // Yield to make sure the running test gets a chance to exit
+        OS_Yield();
 
         if( break_on_failure && failures > 0 )
             break;

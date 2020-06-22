@@ -27,6 +27,7 @@ static inline void debug_kern_warn_break()
  set_fg_colour( TEXT_RED );                                                                                                       \
  print( "\nUser process assert failed at %s:%d\nAssertion:\n\t%s\nWith message:\n\t%s\n", __FILE__, __LINE__,#condition, (msg) ); \
  set_fg_colour( old_colour );                                                                                                     \
+ debug_kern_warn_break();                                                                                                         \
  OS_Terminate();                                                                                                                  \
 } } while(0)
 

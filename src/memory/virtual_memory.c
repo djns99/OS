@@ -89,6 +89,19 @@ void wipe_page_table_entry( size_t virt_address )
     const size_t phys_page = (size_t) page_tables[ directory_entry ][ table_entry ] & PAGE_MASK;
     page_tables[ directory_entry ][ table_entry ] = 0x0;
 
+    bool dir_empty = true;
+    for( uint32_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++ ) {
+        if( page_tables[ directory_entry ] ) {
+            dir_empty = false;
+            break;
+        }
+    }
+
+    if(dir_empty) {
+        free_phys_page( (size_t)curr_page_directory[ directory_entry ] );
+        curr_page_directory[ directory_entry ] = NULL;
+    }
+
     // Free the page
     free_phys_page( phys_page );
 }
