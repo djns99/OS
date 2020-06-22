@@ -5,7 +5,6 @@
 
 pcb_t* periodic_pool[MAXPROCESS];
 
-// TODO
 int PPPLen = 4;
 periodic_name_t PPP[MAXPROCESS] = { 1, 2, 3, 4 };
 periodic_name_t PPPMax[MAXPROCESS] = { 10, 10, 10, 10 };
@@ -16,8 +15,6 @@ bool yielded;
 void init_periodic_state()
 {
     memset8( periodic_pool, 0x0, sizeof( periodic_pool ) );
-
-    // TODO Init plan
 
     yielded = false;
     ppp_index = 0;

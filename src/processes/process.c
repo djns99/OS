@@ -23,7 +23,7 @@ void register_entry_proc()
     // Init process to idle
     current_process = IDLE;
     idle_pcb.pid = IDLE;
-    idle_pcb.type = PERIODIC; // TODO Is this correct?
+    idle_pcb.type = PERIODIC;
     idle_pcb.state = EXECUTING;
     idle_pcb.interrupt_disables = 1; // Start from 1
 }
@@ -320,8 +320,7 @@ int create_syscall( uint32_t param, uint32_t _ )
         return SYS_FAILED;
     }
 
-    // TODO Does this have to be -16?
-    pcb->context.stack = MAX_USER_MEMORY_SIZE - 16;
+    pcb->context.stack = MAX_USER_MEMORY_SIZE - 1;
 
     fork_process( &pcb->context, &get_current_process()->context, pcb );
 

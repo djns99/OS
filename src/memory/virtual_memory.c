@@ -85,8 +85,7 @@ void wipe_page_table_entry( size_t virt_address )
     KERNEL_ASSERT( page_directory_entry_is_valid( directory_entry ), "Freed unallocated page" );
     KERNEL_ASSERT( page_tables[ directory_entry ][ table_entry ], "Freed unallocated page" );
 
-    // TODO Free directory entry if needed
-    // TODO This is needed
+    // TODO Free directory entry
     const size_t phys_page = (size_t) page_tables[ directory_entry ][ table_entry ] & PAGE_MASK;
     page_tables[ directory_entry ][ table_entry ] = 0x0;
 
