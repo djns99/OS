@@ -229,7 +229,6 @@ void free_page( void* page )
         free_phys_page( (size_t) curr_page_directory[ directory_entry ] );
         curr_page_directory[ directory_entry ] = NULL;
     }
-
 }
 
 void kfree_page( void* page )

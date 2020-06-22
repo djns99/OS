@@ -1,4 +1,3 @@
-#include "interrupt/interrupt.h"
 #include "utility/debug.h"
 #include "device_process.h"
 
