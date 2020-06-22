@@ -85,22 +85,8 @@ void wipe_page_table_entry( size_t virt_address )
     KERNEL_ASSERT( page_directory_entry_is_valid( directory_entry ), "Freed unallocated page" );
     KERNEL_ASSERT( page_tables[ directory_entry ][ table_entry ], "Freed unallocated page" );
 
-    // TODO Free directory entry
     const size_t phys_page = (size_t) page_tables[ directory_entry ][ table_entry ] & PAGE_MASK;
     page_tables[ directory_entry ][ table_entry ] = 0x0;
-
-    bool dir_empty = true;
-    for( uint32_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++ ) {
-        if( page_tables[ directory_entry ] ) {
-            dir_empty = false;
-            break;
-        }
-    }
-
-    if( dir_empty ) {
-        free_phys_page( (size_t) curr_page_directory[ directory_entry ] );
-        curr_page_directory[ directory_entry ] = NULL;
-    }
 
     // Free the page
     free_phys_page( phys_page );
@@ -228,6 +214,22 @@ void free_page( void* page )
 {
     KERNEL_ASSERT( (size_t) page < KERNEL_VIRTUAL_BASE, "Tried to free kernel page" );
     wipe_page_table_entry( (size_t) page );
+
+    // Remove the page directory if it is free
+    const size_t directory_entry = address_to_directory_entry( (size_t) page );
+    bool dir_empty = true;
+    for( uint32_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++ ) {
+        if( page_tables[ directory_entry ] ) {
+            dir_empty = false;
+            break;
+        }
+    }
+
+    if( dir_empty ) {
+        free_phys_page( (size_t) curr_page_directory[ directory_entry ] );
+        curr_page_directory[ directory_entry ] = NULL;
+    }
+
 }
 
 void kfree_page( void* page )
