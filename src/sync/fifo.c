@@ -16,7 +16,8 @@ fifo_t fifo_pool[MAXFIFO];
 int init_fifo_syscall( uint32_t res, uint32_t _ )
 {
     for( uint32_t i = 0; i < MAXFIFO; i++ ) {
-        if( fifo_pool[ i ].head != NULL ) {
+        // Assume an empty fifo is free
+        if( fifo_pool[ i ].size == 0 ) {
             fifo_pool[ i ].head = 0;
             fifo_pool[ i ].size = 0;
             *(FIFO*) res = i + 1;
@@ -102,8 +103,8 @@ BOOL OS_Read( FIFO f, int* val )
 void init_fifos()
 {
     for( uint32_t i = 0; i < MAXFIFO; i++ ) {
-        fifo_pool[ i ].head = -1;
-        fifo_pool[ i ].size = -1;
+        fifo_pool[ i ].head = 0;
+        fifo_pool[ i ].size = 0;
     }
 
     register_syscall_handler( SYSCALL_FIFO_INIT, &init_fifo_syscall );

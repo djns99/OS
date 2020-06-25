@@ -1,6 +1,31 @@
 #include "test_suite.h"
 #include "test_helper.h"
 
+bool test_invalid_fifo()
+{
+    FIFO num_fifos[MAXFIFO];
+    for(int i = 0; i < MAXFIFO; i++) {
+        FIFO f = OS_InitFiFo();
+        ASSERT_NE(f, INVALIDFIFO);
+        for(int j = 0; j < i; j++)
+            ASSERT_NE(f, num_fifos[j]);
+        OS_Write(f, i);
+        num_fifos[i] = f;
+    }
+
+    ASSERT_EQ(OS_InitFiFo(), INVALIDFIFO);
+
+    for(int i = 0; i < MAXFIFO; i++) {
+        int val;
+        ASSERT_TRUE(OS_Read(num_fifos[i], &val));
+        ASSERT_EQ(val, i);
+    }
+
+    ASSERT_NE(OS_InitFiFo(), INVALIDFIFO);
+
+    return true;
+}
+
 void producer_func()
 {
     FIFO f = OS_GetParam();
@@ -44,7 +69,7 @@ bool test_mpsc_fifo()
     const uint32_t num_procucers = FIFOSIZE / 3;
     FIFO f = OS_InitFiFo();
     ASSERT_NE( f, INVALIDFIFO );
-    
+
     for( uint32_t i = 0; i < num_procucers; i++ ) {
         PID pid = OS_Create( producer_func, f, SPORADIC, 0 );
         ASSERT_NE( pid, INVALIDPID );
@@ -75,7 +100,7 @@ uint32_t xor;
 void consumer_func()
 {
     FIFO f = OS_GetParam();
-    
+
     int val;
     do {
         while( !OS_Read( f, &val ) )
@@ -92,7 +117,7 @@ bool test_mpmc_fifo()
 {
     cumulative = 0;
     xor = 0;
-    
+
     ASSERT_LE( FIFOSIZE / 3, MAX_TEST_PROCESSES );
     const uint32_t num_procucers = FIFOSIZE / 3;
     const uint32_t num_consumers = MAX_TEST_PROCESSES - FIFOSIZE / 3;
@@ -105,24 +130,24 @@ bool test_mpmc_fifo()
     OS_InitSem( HOST_SEMAPHORE, 1-(num_procucers * 3) );
     // Mutex to protect globals
     OS_InitSem( SUM_SEMAPHORE, 1 );
-    
+
     for( uint32_t i = 0; i < num_procucers; i++ ) {
         PID pid = OS_Create( producer_func, f, SPORADIC, 0 );
         ASSERT_NE( pid, INVALIDPID );
     }
-    
+
     for( uint32_t i = 0; i < num_consumers; i++ ) {
         PID pid = OS_Create( consumer_func, f, SPORADIC, 0 );
         ASSERT_NE( pid, INVALIDPID );
     }
-    
+
     OS_Wait( HOST_SEMAPHORE );
-    
+
     for( uint32_t i = 0; i < num_consumers; i++ ) {
         // Flush consumers
         OS_Write( f, 0 );
     }
-    
+
     ASSERT_EQ( cumulative, num_procucers * 7 );
     ASSERT_EQ( xor, ( num_procucers % 2 ) * 0x7 );
 

@@ -58,6 +58,8 @@ int wait_sem_syscall( uint32_t s, uint32_t _ )
 
     disable_interrupts();
 
+    get_current_process()->held_semaphores[ s ] = false;
+
     // Need to loop since a new process may have stolen the semaphore before any unblocked processes could wake up
     while( semaphore_pool[ s ].val <= 0 )
         block_process( &semaphore_pool[ s ].blocked_list, get_current_process() );
