@@ -58,6 +58,11 @@ void bitmap_flip_bit( bitmap_t bmp, uint32_t idx )
     bmp[ idx / 32 + 1 ] ^= ( 1u << ( idx % 32u ) );
 }
 
+bool bitmap_get_bit( bitmap_t bmp, uint32_t idx )
+{
+    return ( bmp[ idx / 32 + 1 ] >> ( idx % 32 ) ) & 0x1;
+}
+
 uint32_t bitmap_count_set( bitmap_t bmp )
 {
     uint32_t count = 0;

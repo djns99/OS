@@ -6,6 +6,7 @@
 #include "utility/types.h"
 #include "sync/semaphore.h"
 #include "context_switch.h"
+#include "utility/bitmap.h"
 
 typedef PID pid_t;
 typedef uint32_t tid_t;
@@ -27,7 +28,7 @@ typedef struct {
     uint32_t stack_size;
     uint32_t interrupt_disables;
     execution_state_t state;
-    bool held_semaphores[MAXSEM];
+    DECLARE_VARIABLE_BITMAP(held_semaphores, MAXSEM);
 
     int arg;
     process_function_t function;

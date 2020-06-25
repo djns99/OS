@@ -58,15 +58,12 @@ int wait_sem_syscall( uint32_t s, uint32_t _ )
 
     disable_interrupts();
 
-    get_current_process()->held_semaphores[ s ] = false;
-
     // Need to loop since a new process may have stolen the semaphore before any unblocked processes could wake up
     while( semaphore_pool[ s ].val <= 0 )
         block_process( &semaphore_pool[ s ].blocked_list, get_current_process() );
 
     semaphore_pool[ s ].val--;
-    get_current_process()->held_semaphores[ s ] = true;
-
+    bitmap_set_bit( get_current_process()->held_semaphores, s );
     enable_interrupts();
     return SYS_SUCCESS;
 }
@@ -75,12 +72,12 @@ int signal_sem_syscall( uint32_t s, uint32_t _ )
 {
     disable_interrupts();
 
-    bool holds_sem = compliance_mode != STRICT || get_current_process()->held_semaphores[ s ];
+    bool holds_sem = compliance_mode != STRICT || bitmap_get_bit( get_current_process()->held_semaphores, s );
     // Release semaphore
     if( holds_sem && ++semaphore_pool[ s ].val > 0 )
         schedule_blocked( &semaphore_pool[ s ].blocked_list );
 
-    get_current_process()->held_semaphores[ s ] = false;
+    bitmap_clear_bit( get_current_process()->held_semaphores, s );
     enable_interrupts();
     return SYS_SUCCESS;
 }

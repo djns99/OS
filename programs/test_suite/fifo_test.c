@@ -1,27 +1,32 @@
 #include "test_suite.h"
 #include "test_helper.h"
+#include "sync/fifo.h"
 
 bool test_invalid_fifo()
 {
+    // Test allocating too many FIFOs
     FIFO num_fifos[MAXFIFO];
-    for(int i = 0; i < MAXFIFO; i++) {
+    for( int i = 0; i < MAXFIFO; i++ ) {
         FIFO f = OS_InitFiFo();
-        ASSERT_NE(f, INVALIDFIFO);
-        for(int j = 0; j < i; j++)
-            ASSERT_NE(f, num_fifos[j]);
-        OS_Write(f, i);
-        num_fifos[i] = f;
+        ASSERT_NE( f, INVALIDFIFO );
+        for( int j = 0; j < i; j++ )
+            ASSERT_NE( f, num_fifos[ j ] );
+        num_fifos[ i ] = f;
     }
 
-    ASSERT_EQ(OS_InitFiFo(), INVALIDFIFO);
+    ASSERT_EQ( OS_InitFiFo(), INVALIDFIFO );
 
-    for(int i = 0; i < MAXFIFO; i++) {
-        int val;
-        ASSERT_TRUE(OS_Read(num_fifos[i], &val));
-        ASSERT_EQ(val, i);
-    }
+    for( int i = 0; i < MAXFIFO; i++ )
+        ASSERT_TRUE( release_fifo( num_fifos[ i ] ) );
 
-    ASSERT_NE(OS_InitFiFo(), INVALIDFIFO);
+    // Check freeing bad fifos
+    ASSERT_FALSE( release_fifo( INVALIDFIFO ) );
+    ASSERT_FALSE( release_fifo( 1 ) );
+
+    // Check doing ops on unused FIFOs
+    ASSERT_FALSE( OS_Read( 1, NULL ) );
+    int val;
+    ASSERT_FALSE( OS_Read( 1, &val ) );
 
     return true;
 }
@@ -60,6 +65,8 @@ bool test_spsc_fifo()
 
     ASSERT_EQ( res, 4 );
 
+    ASSERT_TRUE( release_fifo( f ) );
+
     return true;
 }
 
@@ -89,6 +96,8 @@ bool test_mpsc_fifo()
     ASSERT_EQ( cumulative, num_procucers * 7 );
     ASSERT_EQ( xor, ( num_procucers % 2 ) * 0x7 );
 
+    ASSERT_TRUE( release_fifo( f ) );
+
     return true;
 }
 
@@ -110,7 +119,7 @@ void consumer_func()
         xor ^= val;
         OS_Signal( SUM_SEMAPHORE );
         OS_Signal( HOST_SEMAPHORE );
-    } while ( val );
+    } while( val );
 }
 
 bool test_mpmc_fifo()
@@ -127,7 +136,7 @@ bool test_mpmc_fifo()
     ASSERT_NE( f, INVALIDFIFO );
 
     // Waits for all items to be read
-    OS_InitSem( HOST_SEMAPHORE, 1-(num_procucers * 3) );
+    OS_InitSem( HOST_SEMAPHORE, 1 - ( num_procucers * 3 ) );
     // Mutex to protect globals
     OS_InitSem( SUM_SEMAPHORE, 1 );
 
@@ -148,8 +157,13 @@ bool test_mpmc_fifo()
         OS_Write( f, 0 );
     }
 
+    // Yield to let other processes exit
+    OS_Yield();
+
     ASSERT_EQ( cumulative, num_procucers * 7 );
     ASSERT_EQ( xor, ( num_procucers % 2 ) * 0x7 );
+
+    ASSERT_TRUE( release_fifo( f ) );
 
     return true;
 }

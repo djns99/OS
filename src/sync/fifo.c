@@ -16,8 +16,7 @@ fifo_t fifo_pool[MAXFIFO];
 int init_fifo_syscall( uint32_t res, uint32_t _ )
 {
     for( uint32_t i = 0; i < MAXFIFO; i++ ) {
-        // Assume an empty fifo is free
-        if( fifo_pool[ i ].size == 0 ) {
+        if( fifo_pool[ i ].head == -1 ) {
             fifo_pool[ i ].head = 0;
             fifo_pool[ i ].size = 0;
             *(FIFO*) res = i + 1;
@@ -63,8 +62,10 @@ int read_fifo_syscall( uint32_t param, uint32_t res )
     disable_interrupts();
 
     fifo_t* fifo = &fifo_pool[ f - 1 ];
-    if( fifo->head == -1 )
+    if( fifo->head == -1 ) {
+        enable_interrupts();
         return SYS_INVLARG;
+    }
 
     if( !fifo->size ) {
         enable_interrupts();
@@ -74,6 +75,27 @@ int read_fifo_syscall( uint32_t param, uint32_t res )
     const uint32_t idx = ( fifo->head - fifo->size + FIFOSIZE ) % FIFOSIZE;
     fifo->size--;
     *val = fifo->buffer[ idx ];
+
+    enable_interrupts();
+    return SYS_SUCCESS;
+}
+
+int release_fifo_syscall( uint32_t f, uint32_t _)
+{
+    if( f > MAXFIFO || f == INVALIDFIFO )
+        return SYS_INVLARG;
+
+    disable_interrupts();
+    fifo_t* fifo = &fifo_pool[ f - 1 ];
+    if(fifo->head == -1) {
+        enable_interrupts();
+        return SYS_FAILED;
+    }
+
+    PROCESS_WARNING( fifo->size == 0, "Freed FIFO with unread elements" );
+
+    fifo->head = -1;
+    fifo->size = -1;
 
     enable_interrupts();
     return SYS_SUCCESS;
@@ -96,18 +118,29 @@ void OS_Write( FIFO f, int val )
 BOOL OS_Read( FIFO f, int* val )
 {
     int res = syscall( SYSCALL_FIFO_READ, f, (uint32_t) val );
-    PROCESS_WARNING( res == SYS_SUCCESS || res == SYS_FAILED, "Error reading from FIFO" );
+    PROCESS_WARNING( res != SYS_INVLARG, "Invalid argument provided" );
+    PROCESS_WARNING( res == SYS_FAILED || res == SYS_SUCCESS || res == SYS_INVLARG, "Error reading from FIFO");
+    return res == SYS_SUCCESS;
+}
+
+bool release_fifo( FIFO f )
+{
+    int res = syscall( SYSCALL_FIFO_RELEASE, f, 0 );
+    PROCESS_WARNING( res != SYS_INVLARG, "Freed invalid FIFO" );
+    PROCESS_WARNING( res != SYS_FAILED, "FIFO Was not allocated");
+    PROCESS_WARNING( res == SYS_FAILED || res == SYS_SUCCESS || res == SYS_INVLARG, "FIFO Was not allocated");
     return res == SYS_SUCCESS;
 }
 
 void init_fifos()
 {
     for( uint32_t i = 0; i < MAXFIFO; i++ ) {
-        fifo_pool[ i ].head = 0;
-        fifo_pool[ i ].size = 0;
+        fifo_pool[ i ].head = -1;
+        fifo_pool[ i ].size = -1;
     }
 
     register_syscall_handler( SYSCALL_FIFO_INIT, &init_fifo_syscall );
     register_syscall_handler( SYSCALL_FIFO_WRITE, &write_fifo_syscall );
     register_syscall_handler( SYSCALL_FIFO_READ, &read_fifo_syscall );
+    register_syscall_handler( SYSCALL_FIFO_RELEASE, &release_fifo_syscall );
 }

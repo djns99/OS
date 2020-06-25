@@ -69,6 +69,13 @@ void bitmap_assign_bit( bitmap_t bmp, uint32_t idx, bool val );
  * @param idx The bit to flip
  */
 void bitmap_flip_bit( bitmap_t bmp, uint32_t idx );
+/**
+ * Get the bit at the specified index
+ * @param bmp The bitmap to update
+ * @param idx The bit to get
+ * @return The value of the bit
+ */
+bool bitmap_get_bit( bitmap_t bmp, uint32_t idx );
 
 /**
  * Count the number of set bits in the bitmap
