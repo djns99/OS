@@ -28,6 +28,11 @@ bool test_invalid_fifo()
     int val;
     ASSERT_FALSE( OS_Read( 1, &val ) );
 
+    // Check invalid res pointer
+    FIFO f = OS_InitFiFo();
+    ASSERT_FALSE( OS_Read( f, NULL ) );
+    release_fifo( f );
+
     return true;
 }
 
