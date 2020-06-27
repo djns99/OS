@@ -222,6 +222,7 @@ bool test_bad_free()
 
 bool test_malloc_interleaved()
 {
+    srand( get_time_us() );
     const uint32_t max_num_allocs = 1024;
     const uint32_t max_alloc_size = 64 * 1024;
     uint8_t* allocs[max_num_allocs];

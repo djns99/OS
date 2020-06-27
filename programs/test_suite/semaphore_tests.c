@@ -6,7 +6,7 @@
 #define HOST_NOTIFY_SEM (MAXSEM - 2)
 bool awake[MAX_TEST_PROCESSES];
 
-void sleep_func()
+static void sleep_func()
 {
     uint32_t param = OS_GetParam();
     int semaphore_id = param & 0xFFFFu;

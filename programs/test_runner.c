@@ -28,7 +28,9 @@ static test_t test_suite[] = {
         { .name = "Invalid FIFO Tests", .function = test_invalid_fifo },
 
         // Process Scheduling
-        { .name = "Process Scheduling Tests", .function = test_process_scheduling },
+        { .name = "Periodic Scheduling Tests", .function = test_periodic_scheduling },
+        { .name = "Sporadic Scheduling Tests", .function = test_sporadic_scheduling },
+        { .name = "Device Scheduling Tests", .function = test_device_scheduling },
 
         // End
 };

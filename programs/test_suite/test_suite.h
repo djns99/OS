@@ -30,6 +30,8 @@ bool test_mpsc_fifo();
 bool test_mpmc_fifo();
 bool test_invalid_fifo();
 
-bool test_process_scheduling();
+bool test_periodic_scheduling();
+bool test_sporadic_scheduling();
+bool test_device_scheduling();
 
 #endif //OS_TEST_SUITE_H
