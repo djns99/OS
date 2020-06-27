@@ -45,7 +45,7 @@ bool watchdog_check = false;
 bool watchdog_running = true;
 bool watchdog_exited = true;
 bool verbose = false;
-bool break_on_failure = false;
+bool break_on_failure = true;
 
 // A flag used by tests to indicate non fatal failures
 bool error_flag;
@@ -102,7 +102,7 @@ void test_watchdog()
     watchdog_exited = true;
 }
 
-void test_runner()
+bool test_runner()
 {
     // Used relaxed compliance mode for the tests
     semaphore_compliance_mode_t comp_mode = get_sem_compliance();
@@ -141,6 +141,7 @@ void test_runner()
             break;
     }
 
+    bool had_failure = failures > 0;
     if( verbose )
         print( "Finished test suite\n" );
     print( "============================\n" );
@@ -162,4 +163,6 @@ void test_runner()
 
     // Restore the old compliance mode
     set_sem_compliance( comp_mode );
+
+    return !had_failure;
 }

@@ -80,14 +80,14 @@ int read_fifo_syscall( uint32_t param, uint32_t res )
     return SYS_SUCCESS;
 }
 
-int release_fifo_syscall( uint32_t f, uint32_t _)
+int release_fifo_syscall( uint32_t f, uint32_t _ )
 {
     if( f > MAXFIFO || f == INVALIDFIFO )
         return SYS_INVLARG;
 
     disable_interrupts();
     fifo_t* fifo = &fifo_pool[ f - 1 ];
-    if(fifo->head == -1) {
+    if( fifo->head == -1 ) {
         enable_interrupts();
         return SYS_FAILED;
     }
@@ -119,7 +119,7 @@ BOOL OS_Read( FIFO f, int* val )
 {
     int res = syscall( SYSCALL_FIFO_READ, f, (uint32_t) val );
     PROCESS_WARNING( res != SYS_INVLARG, "Invalid argument provided" );
-    PROCESS_WARNING( res == SYS_FAILED || res == SYS_SUCCESS || res == SYS_INVLARG, "Error reading from FIFO");
+    PROCESS_WARNING( res == SYS_FAILED || res == SYS_SUCCESS || res == SYS_INVLARG, "Error reading from FIFO" );
     return res == SYS_SUCCESS;
 }
 
@@ -127,8 +127,8 @@ bool release_fifo( FIFO f )
 {
     int res = syscall( SYSCALL_FIFO_RELEASE, f, 0 );
     PROCESS_WARNING( res != SYS_INVLARG, "Freed invalid FIFO" );
-    PROCESS_WARNING( res != SYS_FAILED, "FIFO Was not allocated");
-    PROCESS_WARNING( res == SYS_FAILED || res == SYS_SUCCESS || res == SYS_INVLARG, "FIFO Was not allocated");
+    PROCESS_WARNING( res != SYS_FAILED, "FIFO Was not allocated" );
+    PROCESS_WARNING( res == SYS_FAILED || res == SYS_SUCCESS || res == SYS_INVLARG, "FIFO Was not allocated" );
     return res == SYS_SUCCESS;
 }
 

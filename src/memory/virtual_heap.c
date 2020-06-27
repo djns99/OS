@@ -32,7 +32,9 @@ range_list_entry_t* alloc_pool_entry( virtual_heap_t* heap, size_t start, size_t
             return heap->last_pool_alloc_loc;
         }
 
-        for( range_list_entry_t* curr = heap->last_pool_alloc_loc + 1; curr != heap->last_pool_alloc_loc; curr++ ) {
+        for( range_list_entry_t* curr = heap->last_pool_alloc_loc + 1; curr != heap->last_pool_alloc_loc;
+             curr = ( curr == heap->node_pool + heap->pool_size / sizeof( range_list_entry_t ) ) ? heap->node_pool : (
+                     curr + 1 ) ) {
             if( curr->start == 0 ) {
                 init_pool_entry( curr, start, len );
                 heap->last_pool_alloc_loc = curr;
@@ -234,7 +236,7 @@ heap_free_res_t virtual_heap_free( virtual_heap_t* heap, void* addr )
         return heap_free_fatal;
     if( ( *actual_addr & 0xff00u ) != HEAP_MAGIC_NUM )
         return heap_free_fatal;
-    const uint32_t size = ( 1u << ( *actual_addr & 0xffu) ) + 2;
+    const uint32_t size = ( 1u << ( *actual_addr & 0xffu ) ) + 2;
     heap->heap_usage -= size;
     heap_free_res_t res = insert_free_list( heap, actual_addr, size );
     if( res == heap_free_ok && virt_address_is_valid( actual_addr ) )

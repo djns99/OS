@@ -28,7 +28,7 @@ typedef struct {
     uint32_t stack_size;
     uint32_t interrupt_disables;
     execution_state_t state;
-    DECLARE_VARIABLE_BITMAP(held_semaphores, MAXSEM);
+    DECLARE_VARIABLE_BITMAP( held_semaphores, MAXSEM );
 
     int arg;
     process_function_t function;

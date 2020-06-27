@@ -4,30 +4,30 @@
 #include <utility/print.h>
 #include <utility/string.h>
 
-extern void test_runner();
+extern bool test_runner();
 
 void print_uptime()
 {
     char* unit = readline( "Enter Time Unit (us, ms, s, m, h) > " );
-    if(!unit) {
-        print("Failed to get time unit\n");
+    if( !unit ) {
+        print( "Failed to get time unit\n" );
         return;
     }
 
     uint64_t time_us = get_time_us();
-    if( strcmp(unit, "MS") )
+    if( strcmp( unit, "MS" ) )
         time_us /= 1e3;
-    else if( strcmp(unit, "S") )
+    else if( strcmp( unit, "S" ) )
         time_us /= 1e6;
-    else if( strcmp(unit, "M"))
+    else if( strcmp( unit, "M" ) )
         time_us /= 60e6;
-    else if( strcmp(unit, "H") )
+    else if( strcmp( unit, "H" ) )
         time_us /= 3600e6;
-    else if( !strcmp(unit, "US" ))
+    else if( !strcmp( unit, "US" ) )
         print( "** Unrecognised time format, assuming us **\n" );
 
     print( "Current uptime is %U %s\n", time_us, unit );
-    OS_Free( (MEMORY)unit );
+    OS_Free( (MEMORY) unit );
 }
 
 void shell()
@@ -40,7 +40,7 @@ void shell()
         }
 
         if( strcmp( line, "TEST" ) )
-            test_runner();
+            while( test_runner() );
         else if( strcmp( line, "EXIT" ) )
             break;
         else if( strcmp( line, "UPTIME" ) )

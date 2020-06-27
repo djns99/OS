@@ -6,7 +6,7 @@
  * Sets the seed for the random generator
  * @param seed The seed to set
  */
-void srand(int seed);
+void srand( int seed );
 
 /**
  * Generates a random positive number in the range 0-INT32_MAX

@@ -5,10 +5,6 @@
 
 pcb_t* periodic_pool[MAXPROCESS];
 
-#define NUM_PERIODIC_SLOTS 9
-int PPPLen = NUM_PERIODIC_SLOTS;
-periodic_name_t PPP[NUM_PERIODIC_SLOTS] = { 1, 2, 3, 4, IDLE, 4, 1, 2, 3 };
-periodic_name_t PPPMax[NUM_PERIODIC_SLOTS] = { 10, 15, 7, 11, 1, 9, 10, 5, 13 };
 uint64_t next_periodic_start;
 uint32_t ppp_index;
 bool yielded;

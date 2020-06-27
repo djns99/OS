@@ -53,7 +53,7 @@ bool extend_buffer()
         if( !new_buf )
             return false;
 
-        memcpy(new_buf, current_buffer, buffer_pos * sizeof(char));
+        memcpy( new_buf, current_buffer, buffer_pos * sizeof( char ) );
 
         if( current_buffer )
             kfree( current_buffer );

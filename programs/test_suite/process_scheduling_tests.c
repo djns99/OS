@@ -1,3 +1,4 @@
+#include "processes/process.h"
 #include "utility/rand.h"
 #include "peripherals/timer.h"
 #include "test_helper.h"
@@ -14,21 +15,51 @@ static void sleep( uint64_t sleep_ms )
     while( get_time_ms() < target_time );
 }
 
+int cycle_len;
+const int idle_len = 10;
+const int p1_len = 17;
+const int p2_len = 9;
+const int p3_len = 5;
+const int p4_len = 11;
+const int p_len[5] = { p1_len, p2_len, p3_len, p4_len };
+
+// Define the PPP here in the test
+#define NUM_PERIODIC_SLOTS 9
+int PPPLen = NUM_PERIODIC_SLOTS;
+periodic_name_t PPP[NUM_PERIODIC_SLOTS] = { 1, 2, 4, 3, IDLE, 4, 1, 2, 3 };
+periodic_name_t PPPMax[NUM_PERIODIC_SLOTS] = { p1_len, p2_len, p4_len, p3_len, idle_len, p4_len, p1_len, p2_len,
+                                               p3_len };
+
+void init_periodic_params()
+{
+    cycle_len = 0;
+    for( int i = 0; i < NUM_PERIODIC_SLOTS; i++ )
+        cycle_len += PPPMax[ i ];
+}
+
 volatile bool finished_periodics[4];
 
 void periodic_test_func()
 {
-    int arg = OS_GetParam();
+    const int arg = OS_GetParam();
+    const uint64_t start_time = get_time_ms();
 
-    if( arg == 0 )
-        OS_Create( &periodic_test_func, 1, PERIODIC, 2 );
-    else if( arg == 1 )
-        OS_Create( &periodic_test_func, 2, PERIODIC, 3 );
-    else if( arg == 2 )
-        OS_Create( &periodic_test_func, 3, PERIODIC, 4 );
+    // Yield current slot
+    OS_Yield();
 
-    sleep( 30 );
+    // Check it hasnt been an entire cycle
+    EXPECT_GE( get_time_ms(), start_time + 14 ); // Add 14 since that is the minimum possible step
+    EXPECT_LE( get_time_ms(), start_time + cycle_len - p_len[ arg ] );
+
+    OS_Yield();
+
+    // Check it has been an entire cycle
+    EXPECT_GE( get_time_ms(), start_time + cycle_len - p_len[ arg ] * 2 );
+
+    sleep( 1000 );
+
     finished_periodics[ arg ] = true;
+
     // Busy loop until all four periodic functions finish
     while( !( finished_periodics[ 0 ] & finished_periodics[ 1 ] & finished_periodics[ 2 ] & finished_periodics[ 3 ] ) );
 
@@ -37,9 +68,17 @@ void periodic_test_func()
 
 bool test_periodic_scheduling()
 {
+    init_periodic_params();
+
     memset8( (void*) finished_periodics, 0x0, sizeof( finished_periodics ) );
     OS_InitSem( HOST_NOTIFY_SEM_SCHEDULING, -3 );
     PID pid = OS_Create( &periodic_test_func, 0, PERIODIC, 1 );
+    ASSERT_NE( pid, INVALIDPID );
+    pid = OS_Create( &periodic_test_func, 1, PERIODIC, 2 );
+    ASSERT_NE( pid, INVALIDPID );
+    pid = OS_Create( &periodic_test_func, 2, PERIODIC, 3 );
+    ASSERT_NE( pid, INVALIDPID );
+    pid = OS_Create( &periodic_test_func, 3, PERIODIC, 4 );
     ASSERT_NE( pid, INVALIDPID );
 
     OS_Yield();
@@ -97,7 +136,9 @@ void device_test_func()
 
 bool test_device_scheduling()
 {
-    srand( get_time_us() );
+    int seed = get_time_us();
+    print( "Seed %d\n", seed );
+    srand( seed );
     OS_InitSem( HOST_NOTIFY_SEM_SCHEDULING, -MAX_TEST_PROCESSES + 1 );
     for( int i = 0; i < MAX_TEST_PROCESSES; i++ ) {
         const int len = rand() % 1000 + 1;
@@ -111,7 +152,6 @@ bool test_device_scheduling()
 
 bool test_invalid_process()
 {
-    print("Test start\n");
     int i = 0;
     while( OS_Create( &sleep_proc_func, 0, SPORADIC, 0 ) != INVALIDPID )
         i++;

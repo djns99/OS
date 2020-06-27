@@ -40,9 +40,9 @@ bool test_malloc_underflow_regression()
 
     uint8_t* malloc4 = (void*) OS_Malloc( 1 );
 
-    ASSERT_TRUE( OS_Free((MEMORY)malloc1) );
-    ASSERT_TRUE( OS_Free((MEMORY)malloc3) );
-    ASSERT_TRUE( OS_Free((MEMORY)malloc4) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc1 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc3 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc4 ) );
 
     return true;
 }
@@ -72,9 +72,9 @@ bool test_malloc_large()
     memset8( malloc2, 0x2, alloc_size );
     ASSERT_FALSE( memcmp( malloc1, malloc2, alloc_size ) );
 
-    for(int i = 0; i < alloc_size; i++) {
-        ASSERT_EQ(malloc1[i], 0x1);
-        ASSERT_EQ(malloc2[i], 0x2);
+    for( int i = 0; i < alloc_size; i++ ) {
+        ASSERT_EQ( malloc1[ i ], 0x1 );
+        ASSERT_EQ( malloc2[ i ], 0x2 );
     }
 
     ASSERT_TRUE( OS_Free( (MEMORY) malloc1 ) );
@@ -187,13 +187,13 @@ bool test_bad_free()
     uint8_t* malloc1 = (void*) OS_Malloc( 1000 );
     ASSERT_NE( malloc1, NULL );
 
-    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 + 1 ) );
-    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 + 999 ) );
-    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 - 1 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY) malloc1 + 1 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY) malloc1 + 999 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY) malloc1 - 1 ) );
     ASSERT_FALSE( OS_Free( 0x1000 ) );
 
-    ASSERT_TRUE( OS_Free( (MEMORY)malloc1 ) );
-    ASSERT_FALSE( OS_Free( (MEMORY)malloc1 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc1 ) );
+    ASSERT_FALSE( OS_Free( (MEMORY) malloc1 ) );
 
     // Allocate 3 small buffers
     uint8_t* malloc2 = (void*) OS_Malloc( 1 );
@@ -204,25 +204,27 @@ bool test_bad_free()
     ASSERT_NE( malloc4, NULL );
 
     // Free the last two
-    ASSERT_TRUE( OS_Free( (MEMORY)malloc3 ) );
-    ASSERT_TRUE( OS_Free( (MEMORY)malloc4 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc3 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc4 ) );
 
     // Allocate a large buffer over top
     uint8_t* malloc5 = (void*) OS_Malloc( 0x1000 );
     ASSERT_NE( malloc5, NULL );
 
     // Check we correctly wiped the magic number
-    ASSERT_FALSE(OS_Free((MEMORY)malloc4));
+    ASSERT_FALSE( OS_Free( (MEMORY) malloc4 ) );
 
-    ASSERT_TRUE(OS_Free((MEMORY)malloc2));
-    ASSERT_TRUE(OS_Free((MEMORY)malloc5));
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc2 ) );
+    ASSERT_TRUE( OS_Free( (MEMORY) malloc5 ) );
 
     return true;
 }
 
 bool test_malloc_interleaved()
 {
-    srand( get_time_us() );
+    int seed = get_time_us();
+    print( "Seed %d\n", seed );
+    srand( seed );
     const uint32_t max_num_allocs = 1024;
     const uint32_t max_alloc_size = 64 * 1024;
     uint8_t* allocs[max_num_allocs];
@@ -230,30 +232,28 @@ bool test_malloc_interleaved()
     for( uint32_t pass = 0; pass < 100; pass++ ) {
         for( ; num_allocs < max_num_allocs; num_allocs++ ) {
             int alloc_size = ( rand() % max_alloc_size ) + 1;
-            allocs[num_allocs] = (uint8_t*)OS_Malloc(alloc_size);
-            ASSERT_NE(allocs[num_allocs], NULL);
-            const uintptr_t uptr = (uintptr_t)allocs[num_allocs];
-            const uint8_t value = uptr ^ (uptr>>8u) ^ (uptr>>16u) ^ (uptr>>24u);
-            memset8( allocs[num_allocs], value, alloc_size );
+            allocs[ num_allocs ] = (uint8_t*) OS_Malloc( alloc_size );
+            ASSERT_NE( allocs[ num_allocs ], NULL );
+            const uintptr_t uptr = (uintptr_t) allocs[ num_allocs ];
+            const uint8_t value = uptr ^( uptr >> 8u ) ^( uptr >> 16u ) ^( uptr >> 24u );
+            memset8( allocs[ num_allocs ], value, alloc_size );
         }
 
-        const uint32_t num_to_free = ( rand() % (max_num_allocs - 1) ) + 1;
-        shuffle( allocs, sizeof(uint8_t*), max_num_allocs );
-        for( ; num_allocs > max_num_allocs - num_to_free; num_allocs-- )
-        {
-            const uintptr_t uptr = (uintptr_t)allocs[num_allocs - 1];
-            const uint8_t value = uptr ^ (uptr>>8u) ^ (uptr>>16u) ^ (uptr>>24u);
-            ASSERT_EQ( allocs[num_allocs - 1][0], value );
-            ASSERT_TRUE(OS_Free( (MEMORY)allocs[num_allocs - 1] ) );
+        const uint32_t num_to_free = ( rand() % ( max_num_allocs - 1 ) ) + 1;
+        shuffle( allocs, sizeof( uint8_t* ), max_num_allocs );
+        for( ; num_allocs > max_num_allocs - num_to_free; num_allocs-- ) {
+            const uintptr_t uptr = (uintptr_t) allocs[ num_allocs - 1 ];
+            const uint8_t value = uptr ^( uptr >> 8u ) ^( uptr >> 16u ) ^( uptr >> 24u );
+            ASSERT_EQ( allocs[ num_allocs - 1 ][ 0 ], value );
+            ASSERT_TRUE( OS_Free( (MEMORY) allocs[ num_allocs - 1 ] ) );
         }
     }
 
-    for( uint32_t i = 0; i < num_allocs; i++ )
-    {
-        const uintptr_t uptr = (uintptr_t)allocs[i];
-        const uint8_t value = uptr ^ (uptr>>8u) ^ (uptr>>16u) ^ (uptr>>24u);
-        ASSERT_EQ( allocs[i][0], value );
-        ASSERT_TRUE(OS_Free( (MEMORY)allocs[i] ) );
+    for( uint32_t i = 0; i < num_allocs; i++ ) {
+        const uintptr_t uptr = (uintptr_t) allocs[ i ];
+        const uint8_t value = uptr ^( uptr >> 8u ) ^( uptr >> 16u ) ^( uptr >> 24u );
+        ASSERT_EQ( allocs[ i ][ 0 ], value );
+        ASSERT_TRUE( OS_Free( (MEMORY) allocs[ i ] ) );
     }
 
     return true;
