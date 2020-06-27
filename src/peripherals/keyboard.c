@@ -53,6 +53,8 @@ bool extend_buffer()
         if( !new_buf )
             return false;
 
+        memcpy(new_buf, current_buffer, buffer_pos * sizeof(char));
+
         if( current_buffer )
             kfree( current_buffer );
         current_buffer = new_buf;
@@ -117,24 +119,23 @@ int readline_syscall( uint32_t param1, uint32_t param2 )
         // Failed to allocate
         return SYS_FAILED;
     }
-    enable_interrupts();
 
     print( "%s", (const char*) param1 );
+
     // Block and wait for a line to be read
     block_process( &reading_process, get_current_process() );
 
     int res = SYS_FAILED;
     char* user_data = user_malloc( buffer_pos + 1 );
+    char** line = (char**) param2;
+    *line = user_data;
     if( user_data ) {
-        char** line = (char**) param2;
-        *line = user_data;
-        memcpy( user_data, current_buffer, buffer_pos + 1 );
+        memcpy( user_data, current_buffer, buffer_pos );
         user_data[ buffer_pos ] = '\0';
         res = SYS_SUCCESS;
     }
 
     // Release the keyboard for a different process
-    disable_interrupts();
     current_buffer = NULL;
     schedule_blocked( &blocked_processes );
     enable_interrupts();
