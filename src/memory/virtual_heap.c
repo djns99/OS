@@ -234,7 +234,10 @@ heap_free_res_t virtual_heap_free( virtual_heap_t* heap, void* addr )
         return heap_free_fatal;
     if( ( *actual_addr & 0xff00u ) != HEAP_MAGIC_NUM )
         return heap_free_fatal;
-    const uint32_t size = ( 1u << ( *actual_addr & 0xffu ) ) + 2;
+    const uint32_t size = ( 1u << ( *actual_addr & 0xffu) ) + 2;
     heap->heap_usage -= size;
-    return insert_free_list( heap, actual_addr, size );
+    heap_free_res_t res = insert_free_list( heap, actual_addr, size );
+    if( res == heap_free_ok && virt_address_is_valid( actual_addr ) )
+        *actual_addr = 0x0; // Clear the magic number if the page is still valid
+    return res;
 }
