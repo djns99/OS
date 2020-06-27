@@ -82,7 +82,7 @@ bool test_periodic_scheduling()
     shuffle( process_names, sizeof( periodic_name_t ), MAXPROCESS );
 
     for( int i = 0; i < MAX_TEST_PROCESSES; i++ ) {
-        PID pid = OS_Create( &periodic_test_func, i << 16 | process_names[ i ], PERIODIC, process_names[ i ] );
+        PID pid = OS_Create( &periodic_test_func, (i << 16) | process_names[ i ], PERIODIC, process_names[ i ] );
         ASSERT_NE( pid, INVALIDPID );
     }
 
