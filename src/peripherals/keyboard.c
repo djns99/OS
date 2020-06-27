@@ -70,7 +70,6 @@ void add_char_to_line( char c )
             unblock_waiting_reader();
         } else {
             current_buffer[ buffer_pos++ ] = c;
-            /* Remember that kprint only accepts char[] */
             char str[2] = { c, '\0' };
             print( str );
         }
