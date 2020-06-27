@@ -18,6 +18,7 @@ bool test_malloc_oom();
 bool test_malloc_many();
 bool test_malloc_variable();
 bool test_malloc_fill();
+bool test_malloc_interleaved();
 bool test_bad_free();
 
 bool test_semaphore_mutex();
