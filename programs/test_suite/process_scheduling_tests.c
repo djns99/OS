@@ -29,7 +29,6 @@ int PPPLen = NUM_PERIODIC_SLOTS;
 periodic_name_t PPP[NUM_PERIODIC_SLOTS] = { 1, 2, 4, 3, IDLE, 4, 1, 2, 3 };
 periodic_name_t PPPMax[NUM_PERIODIC_SLOTS] = { p1_len, p2_len, p4_len, p3_len, idle_len, p4_len, p1_len, p2_len,
                                                p3_len };
-
 void init_periodic_params()
 {
     cycle_len = 0;
@@ -37,7 +36,14 @@ void init_periodic_params()
         cycle_len += PPPMax[ i ];
 }
 
-volatile bool finished_periodics[4];
+volatile bool finished_processes[MAX_TEST_PROCESSES];
+bool process_still_running(int num_to_check) {
+    for( int i = 0; i < num_to_check; i++)
+        if( !finished_processes[i] )
+            return true;
+
+    return false;
+}
 
 void periodic_test_func()
 {
@@ -58,10 +64,10 @@ void periodic_test_func()
 
     sleep( 1000 );
 
-    finished_periodics[ arg ] = true;
+    finished_processes[ arg ] = true;
 
     // Busy loop until all four periodic functions finish
-    while( !( finished_periodics[ 0 ] & finished_periodics[ 1 ] & finished_periodics[ 2 ] & finished_periodics[ 3 ] ) );
+    while( process_still_running(4) );
 
     OS_Signal( HOST_NOTIFY_SEM_SCHEDULING );
 }
@@ -70,7 +76,7 @@ bool test_periodic_scheduling()
 {
     init_periodic_params();
 
-    memset8( (void*) finished_periodics, 0x0, sizeof( finished_periodics ) );
+    memset8( (void*) finished_processes, 0x0, sizeof( finished_processes ) );
     OS_InitSem( HOST_NOTIFY_SEM_SCHEDULING, -3 );
     PID pid = OS_Create( &periodic_test_func, 0, PERIODIC, 1 );
     ASSERT_NE( pid, INVALIDPID );
@@ -86,36 +92,40 @@ bool test_periodic_scheduling()
     return true;
 }
 
-volatile bool sleep_finished = false;
-
 static void sleep_proc_func()
 {
-    sleep( OS_GetParam() );
-    sleep_finished = true;
+    sleep( 100 );
+    int index = OS_GetParam();
+    for(int i = index; i < MAX_TEST_PROCESSES; i++)
+        EXPECT_FALSE(finished_processes[ index ]);
+    finished_processes[ index ] = true;
 }
 
 static void sleep_wait_func()
 {
-    while( !sleep_finished )
+    while (process_still_running(MAX_TEST_PROCESSES))
         OS_Yield();
 }
 
 bool test_sporadic_scheduling()
 {
-    sleep_finished = false;
-
-    PID pid = OS_Create( &sleep_proc_func, 1000, SPORADIC, 0 );
-    ASSERT_NE( pid, INVALIDPID );
+    memset8( (void*) finished_processes, 0x0, sizeof( finished_processes ) );
 
     // Create a device function that repeatedly wakes up and does nothing
     // This is just to mess interrupt the scheduling
     PID pid_dev = OS_Create( &sleep_wait_func, 0, DEVICE, 1 );
     ASSERT_NE( pid_dev, INVALIDPID );
 
+    for( int i = 0; i < MAX_TEST_PROCESSES; i++) {
+        PID pid = OS_Create( &sleep_proc_func, i, SPORADIC, 0 );
+        ASSERT_NE( pid, INVALIDPID );
+    }
+
     OS_Yield();
 
-    // Check that we were not scheduled over top of the function
-    ASSERT_TRUE( sleep_finished );
+    // Check all the functions run before us
+    for(int i = 0; i < MAX_TEST_PROCESSES; i++)
+        ASSERT_TRUE(finished_processes[ i ]);
 
     // Sleep to make sure device function exits
     sleep( 2 );
@@ -125,35 +135,46 @@ bool test_sporadic_scheduling()
 
 void device_test_func()
 {
-    const int my_sleep = OS_GetParam();
+    const int param = OS_GetParam();
+    const int my_sleep = param & 0xffff;
+    const int my_index = param >> 16;
     for( int i = 0; i < 1000 / my_sleep; i++ ) {
         const uint32_t next_wakeup = get_time_ms() + my_sleep;
         OS_Yield();
         EXPECT_GE( get_time_ms(), next_wakeup );
     }
-    OS_Signal( HOST_NOTIFY_SEM_SCHEDULING );
+    finished_processes[my_index] = true;
 }
 
 bool test_device_scheduling()
 {
+    memset8( (void*) finished_processes, 0x0, sizeof( finished_processes ) );
+
     int seed = get_time_us();
     print( "Seed %d\n", seed );
     srand( seed );
     OS_InitSem( HOST_NOTIFY_SEM_SCHEDULING, -MAX_TEST_PROCESSES + 1 );
     for( int i = 0; i < MAX_TEST_PROCESSES; i++ ) {
         const int len = rand() % 1000 + 1;
-        PID pid = OS_Create( &device_test_func, len, DEVICE, len );
+        PID pid = OS_Create( &device_test_func, (i << 16u) | len, DEVICE, len );
         ASSERT_NE( pid, INVALIDPID );
     }
 
-    OS_Wait( HOST_NOTIFY_SEM_SCHEDULING );
+    // Wait for all processes to finish
+    // Dont yield to make sure the devices are allowed to preempt us
+    while(process_still_running(MAX_TEST_PROCESSES));
+
     return true;
+}
+
+static void empty_func()
+{
 }
 
 bool test_invalid_process()
 {
     int i = 0;
-    while( OS_Create( &sleep_proc_func, 0, SPORADIC, 0 ) != INVALIDPID )
+    while( OS_Create( &empty_func, 0, SPORADIC, 0 ) != INVALIDPID )
         i++;
 
     ASSERT_GE( i, MAX_TEST_PROCESSES );
