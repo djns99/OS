@@ -22,6 +22,6 @@ extern void context_switch( proc_context_t* new_process_context, proc_context_t*
  * @param start_param A param to identify the new process to new_proc_entry_point
  */
 extern void
-fork_process( proc_context_t* new_process_context, proc_context_t* parent_process_context, void* start_param );
+fork_process( proc_context_t* new_process_context, void* start_param );
 
 #endif //OS_CONTEXT_SWITCH_H

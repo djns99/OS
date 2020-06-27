@@ -323,11 +323,10 @@ int create_syscall( uint32_t param, uint32_t _ )
 
     pcb->context.stack = MAX_USER_MEMORY_SIZE - 1;
 
-    fork_process( &pcb->context, &get_current_process()->context, pcb );
+    args->out_pid = pcb->pid;
+    fork_process( &pcb->context, pcb );
 
     enable_interrupts();
-
-    args->out_pid = pcb->pid;
     return SYS_SUCCESS;
 }
 

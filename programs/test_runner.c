@@ -31,6 +31,7 @@ static test_t test_suite[] = {
         { .name = "Periodic Scheduling Tests", .function = test_periodic_scheduling },
         { .name = "Sporadic Scheduling Tests", .function = test_sporadic_scheduling },
         { .name = "Device Scheduling Tests", .function = test_device_scheduling },
+        { .name = "Invalid Process Tests", .function = test_invalid_process },
 
         // End
 };
@@ -116,7 +117,7 @@ void test_runner()
 
     // Check for a watch dog from a previous run
     watchdog_running = true;
-    if( !watchdog_exited ) {
+    if( watchdog_exited ) {
         watchdog_exited = false;
         PID res = OS_Create( test_watchdog, 0, DEVICE, watch_dog_seconds * 1000 );
         PROCESS_WARNING( res != INVALIDPID, "Failed to start watchdog process" );

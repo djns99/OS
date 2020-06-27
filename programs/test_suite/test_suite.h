@@ -33,5 +33,6 @@ bool test_invalid_fifo();
 bool test_periodic_scheduling();
 bool test_sporadic_scheduling();
 bool test_device_scheduling();
+bool test_invalid_process();
 
 #endif //OS_TEST_SUITE_H

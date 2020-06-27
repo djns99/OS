@@ -15,6 +15,7 @@ static void sleep( uint64_t sleep_ms )
 }
 
 volatile bool finished_periodics[4];
+
 void periodic_test_func()
 {
     int arg = OS_GetParam();
@@ -36,7 +37,7 @@ void periodic_test_func()
 
 bool test_periodic_scheduling()
 {
-    memset8( (void*)finished_periodics, 0x0, sizeof( finished_periodics ) );
+    memset8( (void*) finished_periodics, 0x0, sizeof( finished_periodics ) );
     OS_InitSem( HOST_NOTIFY_SEM_SCHEDULING, -3 );
     PID pid = OS_Create( &periodic_test_func, 0, PERIODIC, 1 );
     ASSERT_NE( pid, INVALIDPID );
@@ -47,9 +48,10 @@ bool test_periodic_scheduling()
 }
 
 volatile bool sleep_finished = false;
+
 static void sleep_proc_func()
 {
-    sleep( 1000 );
+    sleep( OS_GetParam() );
     sleep_finished = true;
 }
 
@@ -63,10 +65,11 @@ bool test_sporadic_scheduling()
 {
     sleep_finished = false;
 
-    PID pid = OS_Create( &sleep_proc_func, 0, SPORADIC, 0 );
+    PID pid = OS_Create( &sleep_proc_func, 1000, SPORADIC, 0 );
     ASSERT_NE( pid, INVALIDPID );
 
     // Create a device function that repeatedly wakes up and does nothing
+    // This is just to mess interrupt the scheduling
     PID pid_dev = OS_Create( &sleep_wait_func, 0, DEVICE, 1 );
     ASSERT_NE( pid_dev, INVALIDPID );
 
@@ -76,19 +79,20 @@ bool test_sporadic_scheduling()
     ASSERT_TRUE( sleep_finished );
 
     // Sleep to make sure device function exits
-    sleep(2);
+    sleep( 2 );
 
     return true;
 }
 
-void device_test_func() {
+void device_test_func()
+{
     const int my_sleep = OS_GetParam();
-    for( int i = 0; i < 1000 / my_sleep; i++) {
+    for( int i = 0; i < 1000 / my_sleep; i++ ) {
         const uint32_t next_wakeup = get_time_ms() + my_sleep;
         OS_Yield();
-        EXPECT_EQ(get_time_ms(), next_wakeup);
+        EXPECT_GE( get_time_ms(), next_wakeup );
     }
-    OS_Signal(HOST_NOTIFY_SEM_SCHEDULING);
+    OS_Signal( HOST_NOTIFY_SEM_SCHEDULING );
 }
 
 bool test_device_scheduling()
@@ -98,9 +102,26 @@ bool test_device_scheduling()
     for( int i = 0; i < MAX_TEST_PROCESSES; i++ ) {
         const int len = rand() % 1000 + 1;
         PID pid = OS_Create( &device_test_func, len, DEVICE, len );
-        ASSERT_NE(pid, INVALIDPID);
+        ASSERT_NE( pid, INVALIDPID );
     }
 
-    OS_Wait(HOST_NOTIFY_SEM_SCHEDULING);
+    OS_Wait( HOST_NOTIFY_SEM_SCHEDULING );
+    return true;
+}
+
+bool test_invalid_process()
+{
+    print("Test start\n");
+    int i = 0;
+    while( OS_Create( &sleep_proc_func, 0, SPORADIC, 0 ) != INVALIDPID )
+        i++;
+
+    ASSERT_GE( i, MAX_TEST_PROCESSES );
+    // There should be at least three process already running
+    ASSERT_LE( i, MAXPROCESS - 3 );
+
+    // Let all the processes run and exit
+    OS_Yield();
+
     return true;
 }
