@@ -1,3 +1,4 @@
+#include "utility/rand.h"
 #include "utility/memops.h"
 #include "utility/memops.h"
 #include "utility/debug.h"
@@ -5,12 +6,28 @@
 
 pcb_t* periodic_pool[MAXPROCESS];
 
+#define NUM_PERIODIC_SLOTS MAXPROCESS+1
+int PPPLen = NUM_PERIODIC_SLOTS;
+periodic_name_t PPP[NUM_PERIODIC_SLOTS];
+int PPPMax[NUM_PERIODIC_SLOTS];
 uint64_t next_periodic_start;
 uint32_t ppp_index;
 bool yielded;
 
 void init_periodic_state()
 {
+    // Generate a random periodic processing order
+    // The seed should be fixed so this will be deterministic
+    for( int i = 0; i < MAXPROCESS; i++ ) {
+        PPP[ i ] = i;
+        PPPMax[ i ] = rand() % 20 + 1;
+    }
+    PPP[ MAXPROCESS ] = IDLE;
+    PPPMax[ MAXPROCESS ] = rand() % 20 + 1;
+
+    shuffle(PPP, sizeof(periodic_name_t), NUM_PERIODIC_SLOTS);
+    shuffle(PPPMax, sizeof(int), NUM_PERIODIC_SLOTS);
+
     memset8( periodic_pool, 0x0, sizeof( periodic_pool ) );
 
     yielded = false;
@@ -80,7 +97,7 @@ bool periodic_is_ready( pcb_t* pcb )
 bool init_periodic( pcb_t* pcb, uint32_t n )
 {
     // Check if process with name already exists
-    if( n > MAXPROCESS || periodic_pool[ n ] != NULL )
+    if( n >= MAXPROCESS || periodic_pool[ n ] != NULL )
         return false;
 
     // Allocate the pool entry
