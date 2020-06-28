@@ -40,7 +40,7 @@ void shell()
         }
 
         if( strcmp( line, "TEST" ) )
-            while( test_runner() );
+            test_runner();
         else if( strcmp( line, "EXIT" ) )
             break;
         else if( strcmp( line, "UPTIME" ) )
